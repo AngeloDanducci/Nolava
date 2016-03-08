@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+<style>
+#chatWrapper {
+	width:275px;
+	height:100%;
+	right:0;
+	border-left:1px solid black;
+	position:fixed;
+}
+
+#chat {
+	width:100%;
+}
+
+#chatInput {
+	bottom:0;
+	position:fixed;
+	width:100%;
+}
+
+.green {
+	color:green;
+}
+</style>
+<script>
+var wsocket = new WebSocket('ws://reapse.lol:1400', 'protocolOne');
+//var wsocket = "";
+
+document.onkeydown = function(event) {
+	if (window.event)
+		keycode = window.event.keyCode;
+	else if (event)
+		keycode = e.which;
+
+	if (keycode == 13)
+		send_msg();
+}
+
+wsocket.onopen = function(event) {
+	//wsocket.send('Hello!');
+}
+
+wsocket.onmessage = function(event) {
+	var msg = event.data;
+	var time = new Date(msg.date);
+
+	console.log(msg);
+
+	var newDiv = document.createElement('div');
+	var newSpan = document.createElement('span');
+	// TODO, get the actual user who sent the message
+	newSpan.innerHTML = 'User' + ': ';
+	newDiv.innerHTML = msg;
+	document.getElementById('chat').appendChild(newDiv);
+
+	//
+}
+
+function send_msg() {
+	console.log('Sending: ' + document.getElementById('chatInput').value);
+	try {
+		wsocket.send(document.getElementById('chatInput').value);
+		document.getElementById('chatInput').value = '';
+	}
+	catch (err) {}
+}
+
+</script>
+</head>
+<body>
+<div id='chatWrapper'>
+	<div id='chat'>
+		<div><span class='green'>User: </span>Placeholder</div>
+	</div>
+	<input id='chatInput' type='text'>
+</div>
+</body>
+</html>
