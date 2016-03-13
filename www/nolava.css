@@ -1,66 +1,56 @@
-body
-{
+body {
 background-color: black;
 }
 
-#p1 {
-  position: absolute;
-  top: 100px;
-  left: 825px;
+#chat-wrapper {
+  min-width:275px;
+  height:100%;
+  border-left:1px solid white;
+  order:3;
+  flex:1 100%;
 }
 
-#p2 {
-  position: absolute;
-  top: 100px;
-  left: 925px;
+#chat {
+  color:white;
+  width:100%;
 }
 
-#p3 {
-  position: absolute;
-  top: 100px;
-  left: 1025px;
+#chat-input {
+  bottom:0;
+  position:fixed;
+  width:100%;
+  color:white;
+  background-color:black;
 }
 
-#p4 {
-  position: absolute;
-  top: 100px;
-  left: 1125px;
+#game {
+  display:flex;
+  margin-right: calc(100% - 275px);
 }
 
-#p5 {
-  position: absolute;
-  top: 100px;
-  left: 1225px;
+#board {
+  order:1;
+  width:800px;
+  height:600px;
+  background-color:#141414;
 }
 
-#p6 {
-  position: absolute;
-  top: 400px;
-  left: 825px;
+#players {
+  order:2;
+  background-color:#111111;
+  min-width:415px;
+  flex:1 100%;
 }
 
-#p7 {
-  position: absolute;
-  top: 400px;
-  left: 925px;
+.player {
+  width:100px;
+  height:200px;
+  display:inline;
 }
 
-#p8 {
-  position: absolute;
-  top: 400px;
-  left: 1025px;
-}
-
-#p9 {
-  position: absolute;
-  top: 400px;
-  left: 1125px;
-}
-
-#p10 {
-  position: absolute;
-  top: 400px;
-  left: 1225px;
+.player button {
+  width:100px;
+  height:200px;
 }
 
 #text{
