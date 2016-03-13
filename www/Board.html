@@ -75,12 +75,12 @@ function send_name() {
 }
 
 function send_msg() {
-  var msg = document.getElementById('chatInput').value;
+  var msg = document.getElementById('chat-input').value;
     if (msg.length > 0) {
-    console.log('Sending: ' + document.getElementById('chatInput').value);
+    console.log('Sending: ' + msg);
     try {
-      wsocket.send(document.getElementById('chatInput').value);
-      document.getElementById('chatInput').value = '';
+      wsocket.send('chat:'+msg);
+      document.getElementById('chat-input').value = '';
     }
     catch (err) {}
   }
