@@ -33,12 +33,12 @@ class WSocket:
 		will accept a connection and upgrade to a websocket'''
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.bind((host, port))
-		self.sock.setblocking(False)
-		self.sock.listen(5) # arg is for backlogged connections before not accepting new ones
+		self.sock.listen(10) # arg is for backlogged connections before not accepting new ones
 
 	def accept(self):
 		# Get request
 		try:
+			self.sock.setblocking(0)
 			connection_tuple = self.sock.accept()
 			if self.verbose:
 				print("Accepted connection from %s" % (connection_tuple[1][0]))
@@ -56,10 +56,12 @@ class WSocket:
 				s += b'Sec-WebSocket-Accept: ' + base64.b64encode(sha1.digest()) + b'\r\n'
 				s += b'Sec-WebSocket-Protocol: ' + bytes(getField('Sec-WebSocket-Protocol', recvd), 'ascii') + b'\r\n'
 				s += b'\r\n'
+				if self.verbose:
+					print('\033[34m' + s.decode('utf-8') + '\033[0m')
 				connection_tuple[0].send(s)
 
 			return connection_tuple[0]
-		except:
+		except BlockingIOError:
 			# Since this is non-blocking, sock.accept() throws an exception if there's
 			# not a client already trying to connect
 			return None
@@ -92,35 +94,42 @@ class WSocket:
 
 			b = bytes(b)
 			b = b + bytesRaw
+			print('\033[34m' + data + '\033[0m')
 			socket.send(b)
 			return True
-		except:
+		except BlockingIOError:
 			return False
 
 	@staticmethod
 	def recv(socket, size):
 		'''Recieve and decode data'''
 		try:
-			socket.settimeout(False)
+			socket.settimeout(0)
 			recvd = socket.recv(size)
 			byteArray = recvd
-			datalength = byteArray[1] & 127
-			indexFirstMask = 2 
-			if datalength == 126:
-				indexFirstMask = 4
-			elif datalength == 127:
-				indexFirstMask = 10
-			masks = [m for m in byteArray[indexFirstMask : indexFirstMask+4]]
-			indexFirstDataByte = indexFirstMask + 4
-			decodedChars = []
-			i = indexFirstDataByte
-			j = 0
-			while i < len(byteArray):
-				decodedChars.append( chr(byteArray[i] ^ masks[j % 4]) )
-				i += 1
-				j += 1
-			return u''.join(decodedChars).encode('utf-8')
-		except:
+			if len(byteArray) > 0:
+				datalength = byteArray[1] & 127
+				indexFirstMask = 2 
+				if datalength == 126:
+					indexFirstMask = 4
+				elif datalength == 127:
+					indexFirstMask = 10
+				masks = [m for m in byteArray[indexFirstMask : indexFirstMask+4]]
+				indexFirstDataByte = indexFirstMask + 4
+				decodedChars = []
+				i = indexFirstDataByte
+				j = 0
+				while i < len(byteArray):
+					decodedChars.append( chr(byteArray[i] ^ masks[j % 4]) )
+					i += 1
+					j += 1
+
+				ret = u''.join(decodedChars).encode('utf-8')
+				print('\033[32m' + ret.decode('utf-8') + '\033[0m')
+				return ret
+			else:
+				return None
+		except BlockingIOError:
 			return None
 
 	@staticmethod
