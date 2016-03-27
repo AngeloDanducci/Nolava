@@ -9,16 +9,22 @@
    <script src="https://code.jquery.com/jquery-2.2.1.min.js" integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00=" crossorigin="anonymous"></script>
    <script src="https://code.jquery.com/ui/1.12.0-beta.1/jquery-ui.min.js" integrity="sha256-WyjlLy3rvVSitHOXMctYkMCOU6GAletPg+qniNKLCQM=" crossorigin="anonymous"></script>
    <script>
+
+var wsocket = wsocket = new WebSocket('ws://nolava.tk:1400', 'protocolOne');;
+var timer = null;
+var timerTime = 0;
+
 $(document).ready(function() {
   $("#name-modal").dialog({autoOpen:false, modal:true,show:"blind",hide:"blind"})
   
   if (!getCookieValue('name')) {
     $('#name-modal').dialog('open');
   }
-});
 
-var wsocket = new WebSocket('ws://nolava.tk:1400', 'protocolOne');
-//var wsocket = "";
+  // Connection not necessarily ready here, commented out for now
+  //if (wsocket.readyState != 1)
+  //  add_server_message('Couldn\'t connect to server!', 'red');
+});
 
 document.onkeydown = function(event) {
   if (window.event)
@@ -56,6 +62,9 @@ wsocket.onmessage = function(event) {
   else if (isFinite(action[0])) {
     add_server_message(action[1] + ' connected.', 'white');
   }
+  else if (action[0] == 'timer') {
+    start_timer(parseInt(action[1]));
+  }
   else if (action[0] == 'quest') {
     if (action[1] == 'member') {
       // They are on the current team for quest
@@ -65,20 +74,25 @@ wsocket.onmessage = function(event) {
     }
   }
   else if (action[0] == 'assign') {
-    // user just got assigned place OR role
-    // if is number (then 'place' given)
-    if (isFinite(action[1])) {
-      console.log("You were given place: "+action[1]);
-    }
-    else { // Role given
-      console.log("You were given role: "+action[1]);
-    }
-    
-    // TODO: replace button with users card
-    // TODO: place session token in cookie
+    assigned(action[1]);
+  }
+  else if (action[0] == 'error') {
+    console.log('error:' + action[1]);
   }
   else if (action[0] == 'session') {
     document.cookie = 'session=' + action[1];
+  }
+}
+
+function assigned(role) {
+  // TODO: get card image, update board
+  // user just got assigned place OR role
+  // if is number (then 'place' given)
+  if (isFinite(role)) {
+    console.log("You were given place: "+role);
+  }
+  else { // Role given
+    console.log("You were given role: "+role);
   }
 }
 
@@ -87,6 +101,24 @@ function getCookieValue(key) {
   var s = '; ' + document.cookie;
   var parts = s.split('; ' + key + '=');
   if (parts.length == 2) return parts.pop().split(';').shift();
+}
+
+function start_timer(time) {
+  timerTime = time;
+  $('#timer').show(300).html(timerTime);
+  timer = setInterval(decrementTimer, 1000);
+}
+
+function decrementTimer() {
+  if (timerTime > 0) {
+    timerTime--;
+    $('#timer').html(timerTime)
+  }
+  else {
+    // Time is up!
+    $('#timer').delay(6000).fadeOut(2500);
+    clearTimeout(timer);
+  }
 }
 
 function add_server_message(message, color) {
@@ -119,12 +151,12 @@ function add_chat(message) {
 }
 
 function send_name() {
+  document.cookie = 'name=' + name;
   $('#name-modal').dialog('close');
   var name = document.getElementById('name-box').value;
   if (name.length > 0) {
     wsocket.send('name:' + name);
   }
-  document.cookie = 'name=' + name + ';';
 }
 
 function send_msg() {
@@ -149,6 +181,8 @@ function join_game(place) {
 <div id="name-modal" class="ui-dialog" title="What is your name?">
   <input id="name-box" type="text"><button onclick="send_name()">Submit</button>
 </div>
+
+<div id="timer"></div>
 
 <div id="game">
   <div id="board">

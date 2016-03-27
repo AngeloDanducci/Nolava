@@ -65,6 +65,8 @@ class WSocket:
 			# Since this is non-blocking, sock.accept() throws an exception if there's
 			# not a client already trying to connect
 			return None
+		except TimeoutError:
+			return None
 
 	@staticmethod
 	def send(socket, data):
@@ -99,6 +101,8 @@ class WSocket:
 			return True
 		except BlockingIOError:
 			return False
+		except TimeoutError:
+			return False
 
 	@staticmethod
 	def recv(socket, size):
@@ -131,8 +135,9 @@ class WSocket:
 				return None
 		except BlockingIOError:
 			return None
+		except TimeoutError:
+			return None
 
-	@staticmethod
-	def close(socket):
+	def close(self):
 		'''Close socket'''
-		socket.close()
+		self.sock.close()

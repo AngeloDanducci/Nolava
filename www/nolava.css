@@ -42,6 +42,14 @@ background-color: black;
   flex:1 100%;
 }
 
+#timer {
+  position:fixed;
+  left:10;
+  top:10;
+  color:white;
+  font-size:4em;
+}
+
 .player {
   width:100px;
   height:200px;

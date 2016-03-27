@@ -10,4 +10,4 @@ class User:
 		self.socket = socket
 		self.session = None # mostly for verifying a person if they need to reconnect
 		self.teamLeader = False
-		self.onTeam = False
+		self.teamMember = False
