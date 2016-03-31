@@ -95,6 +95,12 @@ background-color: black;
   left:0;
 }
 
+.front img {
+  position:absolute;
+  top:0;
+  z-index:-1;
+}
+
 .front {
   z-index:2; /* Firefox 31 fix */
   transform:rotateY(0deg);
