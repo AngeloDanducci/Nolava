@@ -24,6 +24,11 @@ $(document).ready(function() {
   // Connection not necessarily ready here, commented out for now
   //if (wsocket.readyState != 1)
   //  add_server_message('Couldn\'t connect to server!', 'red');
+
+  $('.card').click(function() {
+      $(this).toggleClass('flip');
+      event.preventDefault();
+    });
 });
 
 document.onkeydown = function(event) {
@@ -106,10 +111,10 @@ function getCookieValue(key) {
 function start_timer(time) {
   timerTime = time;
   $('#timer').show(300).html(timerTime);
-  timer = setInterval(decrementTimer, 1000);
+  timer = setInterval(decrement_timer, 1000);
 }
 
-function decrementTimer() {
+function decrement_timer() {
   if (timerTime > 0) {
     timerTime--;
     $('#timer').html(timerTime)
@@ -175,6 +180,14 @@ function join_game(place) {
   wsocket.send('join:' + place);
 }
 
+// Make sure role is the same as the corresponding image file name, minus extension
+function set_place(place, role) {
+  var imgPath = 'images/' + role + '.png';
+  $('#p' + place).find('.back').append('<img src="'+ imgPath +'">');
+  $('#p' + place).find('button').remove();
+  $('#p' + place).children('.card').toggleClass('flip');
+}
+
 </script>
 </head>
 <body>
@@ -189,36 +202,146 @@ function join_game(place) {
     <img src="images/board5.png" alt="Game Board"/>
   </div>
   <div id="players">
-    <div class="player">
-      <button id="p1" type="button" onclick="join_game(1)">Join Game</button>
+    <div id="p1" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <button type="button" onclick="join_game(1)">Join Game</button>
+            <img src="images/cardback.png">
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p2"  type="button" onclick="join_game(2)">Join Game</button>
+
+    <div id="p2" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(2)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p3" type="button" onclick="join_game(3)">Join Game</button>
+
+    <div id="p3" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(3)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p4" type="button" onclick="join_game(4)">Join Game</button>
+
+    <div id="p4" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(4)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p5" type="button" onclick="join_game(5)">Join Game</button>
+
+    <div id="p5" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(5)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p6" type="button" onclick="join_game(6)">Join Game</button>
+
+    <div id="p6" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(6)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p7" type="button" onclick="join_game(7)">Join Game</button>
+
+    <div id="p7" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(7)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p8" type="button" onclick="join_game(8)">Join Game</button>
+
+    <div id="p8" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(8)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p9" type="button" onclick="join_game(9)">Join Game</button>
+
+    <div id="p9" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(9)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="player">
-      <button id="p10" type="button" onclick="join_game(10)">Join Game</button>
+
+    <div id="p10" class="player">
+      <div class="card">
+        <div class="flipper">
+          <div class="front">
+            <!-- <img src="images/cardback.png" onclick="join_game(1)"> -->
+            <button type="button" onclick="join_game(10)">Join Game</button>
+          </div>
+          <div class="back">
+            
+          </div>
+        </div>
+      </div>
     </div>
+    
   </div>
   <div id="chat-wrapper">
     <div id="chat">
