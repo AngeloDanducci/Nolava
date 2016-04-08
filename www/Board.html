@@ -10,9 +10,11 @@
    <script src="https://code.jquery.com/ui/1.12.0-beta.1/jquery-ui.min.js" integrity="sha256-WyjlLy3rvVSitHOXMctYkMCOU6GAletPg+qniNKLCQM=" crossorigin="anonymous"></script>
    <script>
 
-var wsocket = wsocket = new WebSocket('ws://nolava.tk:1400', 'protocolOne');;
+var wsocket = new WebSocket('ws://nolava.tk:1400', 'protocolOne');
 var timer = null;
 var timerTime = 0;
+var myPlace = null;
+var myRole = null;
 
 $(document).ready(function() {
   $("#name-modal").dialog({autoOpen:false, modal:true,show:"blind",hide:"blind"})
@@ -87,6 +89,28 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'session') {
     document.cookie = 'session=' + action[1];
   }
+  else if (action[0] == 'place') {
+    updatePlayers(action[1]);
+  }
+  else if (action[0] == 'state') {
+    updateState(action[1]);
+  }
+}
+
+function updateState(state) {
+  if (state != 'not_started') {
+    // Game has started, remove all the join buttons
+    $('.button-join').remove();
+  }
+}
+
+function updatePlayers(assignment) {
+  // assignment will be either of the form "id#:name:role" or "id#:name"
+  fields = assignment.split(':');
+  set_place_name(fields[0], fields[1]);
+  if (fields.length == 3) {
+    set_place_role(fields[0], fields[2]);
+  }
 }
 
 function assigned(role) {
@@ -95,9 +119,11 @@ function assigned(role) {
   // if is number (then 'place' given)
   if (isFinite(role)) {
     console.log("You were given place: "+role);
+    myPlace = role;
   }
   else { // Role given
     console.log("You were given role: "+role);
+    set_place_role(myPlace, role);
   }
 }
 
@@ -156,10 +182,10 @@ function add_chat(message) {
 }
 
 function send_name() {
-  document.cookie = 'name=' + name;
   $('#name-modal').dialog('close');
   var name = document.getElementById('name-box').value;
   if (name.length > 0) {
+    document.cookie = 'name=' + name;
     wsocket.send('name:' + name);
   }
 }
@@ -181,11 +207,27 @@ function join_game(place) {
 }
 
 // Make sure role is the same as the corresponding image file name, minus extension
-function set_place(place, role) {
-  var imgPath = 'images/' + role + '.png';
-  $('#p' + place).find('.back').append('<img src="'+ imgPath +'">');
+function set_place_role(place, role) {
+  if (myRole == null) {
+    myRole = role;
+    var imgPath = 'images/' + role + '.png';
+    $('#p' + place).find('.back').append('<img src="'+ imgPath +'">');
+    $('#p' + place).find('button').remove();
+    $('#p' + place).children('.card').toggleClass('flip');
+  }
+  else {
+    console.log("Assigned role but already set.");
+  }
+}
+
+function set_place_name(place, user) {
   $('#p' + place).find('button').remove();
-  $('#p' + place).children('.card').toggleClass('flip');
+  if (user != null && user.length > 0) {
+    $('#p' + place).prepend('<span class="player-name">'+user+'</span>');
+  }
+  else {
+    $('#p' + place).empty();
+  }
 }
 
 </script>
@@ -206,7 +248,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(1)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(1)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -220,7 +262,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(2)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(2)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -234,7 +276,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(3)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(3)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -248,7 +290,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(4)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(4)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -262,7 +304,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(5)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(5)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -276,7 +318,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(6)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(6)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -290,7 +332,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(7)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(7)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -304,7 +346,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(8)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(8)">Join Game</button>
             <img src="images/cardback.png"> 
           </div>
           <div class="back">
@@ -318,7 +360,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(9)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(9)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -332,7 +374,7 @@ function set_place(place, role) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" onclick="join_game(10)">Join Game</button>
+            <button type="button" class="button-join" onclick="join_game(10)">Join Game</button>
             <img src="images/cardback.png">
           </div>
           <div class="back">

@@ -69,6 +69,13 @@ background-color: black;
   color: white;
 }
 
+.player-name {
+  position:absolute;
+  z-index:1;
+  font-weight:bold;
+  text-shadow:0px 0px 5px #ffffff;
+}
+
 .card {
   perspective:1000;
 }
