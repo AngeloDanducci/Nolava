@@ -30,17 +30,17 @@ def initUser(user):
 	pass
 
 def joinGame(user):
-	global sessions
-	# Enfore max number of players
+	# Enforce max number of players
 	usersPlaying = [x for x in users if x.role == None]
 
 	if state == 'not_started':
 		if usersPlayer < 5:
 			user.role = None
+			send(user, 'success:%s' % ('You have joined the game.'))
 		else:
-			send(user, 'error:%s' % ('The game already has the max number of players'))
+			send(user, 'error:%s' % ('The game already has the max number of players.'))
 	else:
-		send(user, 'error:%s' % ('Sorry, the game has started'))
+		send(user, 'error:%s' % ('Sorry, the game has already started.'))
 
 def whoami(user):
 	# Tell the user everything they should know based on what role they are (including score etc.)
