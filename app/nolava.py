@@ -121,7 +121,7 @@ def send(user, data):
 			return False
 
 def startGame():
-	# Give all users that have an assigned place a role and start the first round
+	# Give all users an assigned place and role and start the first round
 	# all users that have an assigned place
 	global roles
 	usersPlaying = [x for x in users if x.role == None]
@@ -130,13 +130,21 @@ def startGame():
 	rolesLeft = list(allRoles)
 	rolesLeft.append('good')
 
+	place = 1
+
 	while len(usersPlaying) > 0:
 		role = random.choice(rolesLeft)
 		rolesLeft.remove(role)
 
 		user = usersPlaying.pop(0)
+		user.session = uuid.uuid1()
 		user.role = role
-		send(user, 'assign:%s' % (role))
+		user.place = place
+		send(user, 'assign:%s' % (user.place))
+		send(user, 'assign:%s' % (user.role))
+		send(user, 'session:%s' % (user.session))
+
+		place += 1
 		if role == 'evil' or role == 'good':
 			roles[role].append(user)
 		else:
