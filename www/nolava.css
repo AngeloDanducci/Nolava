@@ -66,6 +66,10 @@ background-color: black;
   color: white;
 }
 
+.last {
+  background-color: blue;
+}
+
 .player-name {
   position:absolute;
   z-index:1;
