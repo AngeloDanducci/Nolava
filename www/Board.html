@@ -101,7 +101,8 @@ wsocket.onmessage = function(event) {
 function setAsLeader()
 {
     //I am leader therefore the buttons are now accessible
-    document.getElementbyClassName("quest-button").style.display = "inline";
+    //document.getElementbyClassName("quest-button").style.display = "inline";
+    $(.quest-button).css('display', 'inline');
 }
 
 function addToQuest(playerPlace)
