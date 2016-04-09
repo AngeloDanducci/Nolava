@@ -7,6 +7,7 @@ import html
 import re
 from wsocket import WSocket
 from user import User
+from gameState import GameState
 
 # empty string here for all available interfaces, same as socket, 0 for timeout
 ws = WSocket('', 1400, 0)
@@ -93,7 +94,7 @@ def notifyEvilPlayers(user, includeDerdrom):
 	if roles['nissassa'] != None:
 		queue.append('place:%s:%s:%s' % (roles['nissassa'].place, roles['nissassa'].name, 'nissassa'))
 
-	random.shuffle(queue)	
+	random.shuffle(queue)
 	for msg in queue:
 		send(user, msg)
 
