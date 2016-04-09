@@ -63,6 +63,9 @@ wsocket.onmessage = function(event) {
   if (action[0] == 'chat') {
     add_chat(action[1]);
   }
+  else if (action[0] == 'success') {
+    add_server_message(action[1], 'green');
+  }
   else if (action[0] == 'disconnected') {
     add_server_message(action[1] + ' disconnected.', 'red');
   }
