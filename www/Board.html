@@ -228,7 +228,6 @@ function set_place_role(place, role) {
     myRole = role;
     var imgPath = 'images/' + role + '.png';
     $('#p' + place).find('.back').append('<img src="'+ imgPath +'">');
-    $('#p' + place).find('button').remove();
     $('#p' + place).children('.card').toggleClass('flip');
   }
   else {
@@ -237,7 +236,6 @@ function set_place_role(place, role) {
 }
 
 function set_place_name(place, user) {
-  $('#p' + place).find('button').remove();
   if (user != null && user.length > 0) {
     $('#p' + place).prepend('<span class="player-name">'+user+'</span>');
   }
