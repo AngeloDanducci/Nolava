@@ -21,6 +21,7 @@ users = []
 disconnected = []
 sessions = {}
 roles = {'nilrem':None, 'nissassa':None, 'good':[], 'evil':[]}
+gameState = None
 
 def htmlEncode(text):
 	return html.escape(text)
@@ -125,6 +126,8 @@ def startGame():
 	# Give all users an assigned place and role and start the first round
 	# all users that have an assigned place
 	global roles
+	global gameState
+	gameState = GameBoard(5)
 	usersPlaying = [x for x in users if x.role == None]
 	random.shuffle(usersPlaying)
 
@@ -170,17 +173,22 @@ def startRound():
 		u.teamLeader = False
 		u.teamMember = False
 
-	state = 'choose_team'
-	leaderPlace = leaderPlace + 1
-	#newLeader = next(x for x in users if x.place == leaderPlace)
-	newLeader = min(users, key=lambda x: numOrInf(x.place))
+	leaderPlace = (leaderPlace + 1) % gameState.numPlayers
+
+	newLeader = None
+	for user in users:
+		if user.place == leaderPlace:
+			newLeader = user
 
 	newLeader.teamLeader = True
 	send(newLeader, 'quest:leader')
 
 	for user in users:
 		send(user, 'leader:%s' % (leaderPlace))
+		# Tell everyone how many players to be on team
+		send(user, 'members_needed:%s' % (gameState.playersOnTeam()))
 
+	state = 'choose_team'
 	startTimer()
 
 def gameAction(action):
@@ -204,6 +212,61 @@ def roundTimeIsUp():
 			return True
 	return False
 
+def stateSatisfied():
+	global state
+	# TODO: Did one team win?
+
+	if state == 'choose_team':
+		playersNeeded = gameState.playersOnTeam()
+		currentPlayers = 1 # 1 Because teamLeader is already chosen
+		teamMembers = [x for x in users if x.teamMember == True]
+		currentPlayers += len(teamMembers)
+
+		if currentPlayers == playersNeeded:
+			# Advance to next game state
+			state = 'vote_quest'
+			for user in users:
+				# TODO tell everyone who is on the current team
+				pass
+	elif state == 'vote_quest':
+		# TODO did team members all vote to accept/reject team?
+		votesNeeded = gameState.playersOnTeam()
+		votes = 0
+		teamMembers = [x for x in users if x.teamMember == True or x.teamLeader == True]
+		for user in teamMembers:
+			if user.voteAffirmative != None:
+				votes += 1
+
+		if votes == votesNeeded:
+			# Tell everyone who voted what
+			for user in users:
+				for u in teamMembers:
+					send(user, 'vote:%s:%s' % (u.name, u.voteAffirmative))
+			# TODO And advance to next state bassed on votes
+
+	elif state == 'quest_success_or_fail':
+		# TODO did everyone vote success or fail for quest?
+		votesNeeded = gameState.playersOnTeam()
+		votes = 0
+		teamMembers = [x for x in users if x.teamMember == True or x.teamLeader == True]
+		for user in teamMembers:
+			if user.voteAffirmative != None:
+				votes += 1
+
+		if votes == votesNeeded:
+			# TODO tell everyone if quest succeeded or not
+			# TODO advance game state based on score
+			pass
+	elif state == 'assassinate':
+		# TODO did assassin choose target?
+		# Just pass here, when assassin chooses target the game state will advance
+		# automatically because there is nothing to wait for
+		pass
+	elif state == 'not_started':
+		# Just pass here, when game admin starts the game the state will advance
+		# automatically because there is nothing to wait for after that
+		return False
+
 def doDefaultTimeOut():
 	# TODO: Do whatever default actions shold be done here, the timer has elapsed
 	if state == 'choose_team':
@@ -221,6 +284,8 @@ try:
 	while True:
 		if roundTimeIsUp():
 			doDefaultTimeOut()
+		
+		stateSatisfied():
 
 		client = ws.accept()
 		if client is not None:
