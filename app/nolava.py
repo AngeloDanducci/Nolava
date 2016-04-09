@@ -218,7 +218,7 @@ def stateSatisfied():
 
 	if state == 'choose_team':
 		playersNeeded = gameState.playersOnTeam()
-		currentPlayers = 1 # 1 Because teamLeader is already chosen
+		currentPlayers = 0
 		teamMembers = [x for x in users if x.teamMember == True]
 		currentPlayers += len(teamMembers)
 
@@ -226,26 +226,37 @@ def stateSatisfied():
 			# Advance to next game state
 			state = 'vote_quest'
 			for user in users:
-				# TODO tell everyone who is on the current team
-				pass
+				for u in teamMembers:
+					send(user, 'team_member:%s' % (u.place))
+
 	elif state == 'vote_quest':
 		# TODO did team members all vote to accept/reject team?
 		votesNeeded = gameState.playersOnTeam()
 		votes = 0
-		teamMembers = [x for x in users if x.teamMember == True or x.teamLeader == True]
+		teamMembers = [x for x in users if x.teamMember == True]
 		for user in teamMembers:
 			if user.voteAffirmative != None:
 				votes += 1
 
 		if votes == votesNeeded:
 			# Tell everyone who voted what
+			fails = 0
 			for user in users:
 				for u in teamMembers:
 					send(user, 'vote:%s:%s' % (u.name, u.voteAffirmative))
-			# TODO And advance to next state bassed on votes
+					u.voteAffirmative = None
+					if !u,voteAffirmative:
+						fails += 1
+			if fails / votesNeeded >= .5:
+				# If there have been 5 failures to go on the quest,
+				# then the quest fails
+				if gameState.attemptedTeams >= 5:
+					gameState.questFails += 1
+				startRound()
+			else:
+				state = 'quest_success_or_fail'
 
 	elif state == 'quest_success_or_fail':
-		# TODO did everyone vote success or fail for quest?
 		votesNeeded = gameState.playersOnTeam()
 		votes = 0
 		teamMembers = [x for x in users if x.teamMember == True or x.teamLeader == True]
@@ -254,9 +265,25 @@ def stateSatisfied():
 				votes += 1
 
 		if votes == votesNeeded:
-			# TODO tell everyone if quest succeeded or not
-			# TODO advance game state based on score
-			pass
+			success = True
+			for user in teamMembers:
+				if user.voteAffirmative == False:
+					success = False
+
+			if success:
+				gameState.questSuccesses += 1
+			else:
+				gameState.questFails += 1
+
+			if gameState.questSuccesses == 3:
+				state = 'assassinate'
+				for user in users:
+					send(user, 'state:assassinate')
+			elif gameState.questFails == 3:
+				state = 'game_over'
+				for user in users:
+					send(user, 'evil_wins:true')
+
 	elif state == 'assassinate':
 		# TODO did assassin choose target?
 		# Just pass here, when assassin chooses target the game state will advance
@@ -278,6 +305,19 @@ def doDefaultTimeOut():
 	elif state == 'quest_success_or_fail':
 		# TODO: Have undecided votes default
 		pass
+
+def assassinVote(user, place):
+	if user.role == 'nissassa' and state == 'assassinate':
+		merlinFound = False
+		if roles['nilrem'].place == place:
+			merlinFound = True
+
+		if merlinFound:
+			for u in users:
+				send(u, 'win:evil')
+		else:
+			for u in users:
+				send(u, 'win:good')
 
 try:
 	userId = 1
@@ -326,6 +366,11 @@ try:
 				pass
 			elif action[0] == 'game':
 				gameAction(action[1])
+			elif action[0] == 'assassinate':
+				assassinVote(user, action[1])
+			elif action[0] == 'quester':
+				# TODO add the person if leader and every other check
+				pass
 			elif action[0] == 'session':
 				# If user is trying to reconnect, make sure they are given the correct user object
 				sessionId = action[1]
@@ -339,7 +384,11 @@ try:
 					print('Untracked user connected with sessionId = %s' % (sessionId))
 			elif action[0] == 'vote':
 				# Should be either reject/approve or success/fail depending on what vote is for
-				pass
+				if user.teamMember:
+					if action[1] == 'yes'
+						user.voteAffirmative = True
+					else:
+						user.voteAffirmative = False 
 			elif action[0] == 'join':
 				joinGame(user)
 			elif action[0] == 'whoami':
