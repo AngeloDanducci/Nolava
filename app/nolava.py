@@ -40,7 +40,7 @@ def joinGame(user):
 			user.role = None
 			send(user, 'success:%s' % ('You have joined the game.'))
 			for u in users:
-				send(u, 'success:%s %s' % (u.name, ' has joined the game.'))
+				send(u, 'success:%s %s' % (user.name, ' has joined the game.'))
 		else:
 			send(user, 'error:%s' % ('The game already has the max number of players.'))
 	else:
