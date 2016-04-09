@@ -202,8 +202,8 @@ function send_msg() {
   }
 }
 
-function join_game(place) {
-  wsocket.send('join:' + place);
+function join_game() {
+  wsocket.send('join:' + "true");
 }
 
 // Make sure role is the same as the corresponding image file name, minus extension
@@ -248,7 +248,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" class="button-join" onclick="join_game(1)">Join Game</button>
+              <!--            <button type="button" class="button-join" onclick="join_game(1)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -262,7 +262,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" class="button-join" onclick="join_game(2)">Join Game</button>
+              <!-- <button type="button" class="button-join" onclick="join_game(2)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -276,7 +276,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" class="button-join" onclick="join_game(3)">Join Game</button>
+              <!-- <button type="button" class="button-join" onclick="join_game(3)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -290,7 +290,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" class="button-join" onclick="join_game(4)">Join Game</button>
+              <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -304,77 +304,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" class="button-join" onclick="join_game(5)">Join Game</button>
-            <img src="images/cardback.png">
-          </div>
-          <div class="back">
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="p6" class="player">
-      <div class="card">
-        <div class="flipper">
-          <div class="front">
-            <button type="button" class="button-join" onclick="join_game(6)">Join Game</button>
-            <img src="images/cardback.png">
-          </div>
-          <div class="back">
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="p7" class="player">
-      <div class="card">
-        <div class="flipper">
-          <div class="front">
-            <button type="button" class="button-join" onclick="join_game(7)">Join Game</button>
-            <img src="images/cardback.png">
-          </div>
-          <div class="back">
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="p8" class="player">
-      <div class="card">
-        <div class="flipper">
-          <div class="front">
-            <button type="button" class="button-join" onclick="join_game(8)">Join Game</button>
-            <img src="images/cardback.png"> 
-          </div>
-          <div class="back">
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="p9" class="player">
-      <div class="card">
-        <div class="flipper">
-          <div class="front">
-            <button type="button" class="button-join" onclick="join_game(9)">Join Game</button>
-            <img src="images/cardback.png">
-          </div>
-          <div class="back">
-            
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="p10" class="player">
-      <div class="card">
-        <div class="flipper">
-          <div class="front">
-            <button type="button" class="button-join" onclick="join_game(10)">Join Game</button>
+              <!-- <button type="button" class="button-join" onclick="join_game(5)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
           <div class="back">
@@ -396,6 +326,10 @@ function set_place_name(place, user) {
 <p id="text">
   Blue Tint = Team Ruthra         Red Tint = Team Derdrom
 </p>
+<br>
+<div style="text-align:center">
+    <button type="button" class="j_butt" onclick="join_game()">Join Game</button>
+</div>
 
 </body>
 </html>
