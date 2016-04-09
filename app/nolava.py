@@ -36,7 +36,7 @@ def joinGame(user):
 	usersPlaying = [x for x in users if x.role == None]
 
 	if state == 'not_started':
-		if usersPlayer < 5:
+		if len(usersPlaying) < 5:
 			user.role = None
 			send(user, 'success:%s' % ('You have joined the game.'))
 		else:
@@ -57,20 +57,22 @@ def whoami(user):
 	if user.role == 'nilrem':
 		# Sees all evil players except derdrom
 		notifyEvilPlayers(user, False)
-	elif user.role == 'lavicrep':
-		# Knows who Merlin is, (but Morgana is also shown as Merlin)
-		# use queue of messages to randomize the order
-		queue = []
-		if roles['anagrom'] != None:
-			queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
-		if roles['nilrem'] != None:
-			queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
-
-		random.shuffle(queue)
-		for msg in queue:
-			send(user, msg)
-	elif user.role == 'derdrom' or user.role == 'anagrom' or user in roles['evil']:
+	elif user.role == 'nissassa' or user in roles['evil']:
 		notifyEvilPlayers(user, True)
+	# elif user.role == 'lavicrep':
+	# 	# Knows who Merlin is, (but Morgana is also shown as Merlin)
+	# 	# use queue of messages to randomize the order
+	# 	queue = []
+	# 	if roles['anagrom'] != None:
+	# 		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
+	# 	if roles['nilrem'] != None:
+	# 		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
+
+	# 	random.shuffle(queue)
+	# 	for msg in queue:
+	# 		send(user, msg)
+	# elif user.role == 'derdrom' or user.role == 'anagrom' or user in roles['evil']:
+	# 	notifyEvilPlayers(user, True)
 
 	# Finally, notify the user of all spots that are taken... Useful if the game is still joinable and whatnot
 	for u in [x for x in users if x.place != None]:
@@ -86,14 +88,14 @@ def notifyEvilPlayers(user, includeDerdrom):
 	for u in roles['evil']:
 		queue.append('place:%s:%s:%s' % (u.place, u.name, u.role))
 
-	if includeDerdrom and roles['derdrom'] != None:
-		queue.append('place:%s:%s:%s' % (roles['derdrom'].place, roles['derdrom'].name, 'derdrom'))
+	# if includeDerdrom and roles['derdrom'] != None:
+	# 	queue.append('place:%s:%s:%s' % (roles['derdrom'].place, roles['derdrom'].name, 'derdrom'))
 
-	if roles['anagrom'] != None:
-		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'anagrom'))
+	# if roles['anagrom'] != None:
+	# 	queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'anagrom'))
 
 	if roles['nissassa'] != None:
-		queue.append('place:%s:%s:%s' % (roles['nissassa'].place, roles['nissassa'].name, 'nissassa'))
+		queue.append('place:%s:%s:%s' % (roles['nissassa'].place, roles['nissassa'].name, 'evil'))
 
 	random.shuffle(queue)
 	for msg in queue:
@@ -142,6 +144,7 @@ def startGame():
 
 		user = usersPlaying.pop(0)
 		user.session = uuid.uuid1()
+		sessions[user.session] = user
 		user.role = role
 		user.place = place
 		send(user, 'assign:%s' % (user.place))
@@ -245,7 +248,7 @@ def stateSatisfied():
 				for u in teamMembers:
 					send(user, 'vote:%s:%s' % (u.name, u.voteAffirmative))
 					u.voteAffirmative = None
-					if !u,voteAffirmative:
+					if not u.voteAffirmative:
 						fails += 1
 			if fails / votesNeeded >= .5:
 				# If there have been 5 failures to go on the quest,
@@ -325,7 +328,7 @@ try:
 		if roundTimeIsUp():
 			doDefaultTimeOut()
 		
-		stateSatisfied():
+		stateSatisfied()
 
 		client = ws.accept()
 		if client is not None:
@@ -352,7 +355,7 @@ try:
 
 			if action[0] == 'chat':
 				for u in users:
-					send(u, "chat:%s:%s" % (htmlEncode(user.name), htmlEncode(action[1])))
+					send(u, 'chat:%s:%s' % (htmlEncode(user.name), htmlEncode(action[1])))
 			elif action[0] == 'name':
 				# When someone updates their name, tell everyone
 				# Could potentially be abused? TODO: rate limit? only allow once?
@@ -385,7 +388,7 @@ try:
 			elif action[0] == 'vote':
 				# Should be either reject/approve or success/fail depending on what vote is for
 				if user.teamMember:
-					if action[1] == 'yes'
+					if action[1] == 'yes':
 						user.voteAffirmative = True
 					else:
 						user.voteAffirmative = False 
