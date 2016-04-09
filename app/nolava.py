@@ -38,7 +38,6 @@ def joinGame(user):
 	if state == 'not_started':
 		if len(usersPlaying) < 5:
 			user.role = None
-			send(user, 'success:%s' % ('You have joined the game.'))
 			for u in users:
 				send(u, 'success:%s %s' % (user.name, ' has joined the game.'))
 		else:
