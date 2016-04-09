@@ -11,3 +11,4 @@ class User:
 		self.session = None # mostly for verifying a person if they need to reconnect
 		self.teamLeader = False
 		self.teamMember = False
+		self.voteAffirmative = None

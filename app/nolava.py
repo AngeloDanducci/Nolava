@@ -7,6 +7,7 @@ import html
 import re
 from wsocket import WSocket
 from user import User
+from gameBoard import GameBoard
 
 # empty string here for all available interfaces, same as socket, 0 for timeout
 ws = WSocket('', 1400, 0)
@@ -20,6 +21,7 @@ users = []
 disconnected = []
 sessions = {}
 roles = {'nilrem':None, 'nissassa':None, 'good':[], 'evil':[]}
+gameState = None
 
 def htmlEncode(text):
 	return html.escape(text)
@@ -30,17 +32,17 @@ def initUser(user):
 	pass
 
 def joinGame(user):
-	global sessions
-	# Enfore max number of players
+	# Enforce max number of players
 	usersPlaying = [x for x in users if x.role == None]
 
 	if state == 'not_started':
-		if usersPlayer < 5:
+		if len(usersPlaying) < 5:
 			user.role = None
+			send(user, 'success:%s' % ('You have joined the game.'))
 		else:
-			send(user, 'error:%s' % ('The game already has the max number of players'))
+			send(user, 'error:%s' % ('The game already has the max number of players.'))
 	else:
-		send(user, 'error:%s' % ('Sorry, the game has started'))
+		send(user, 'error:%s' % ('Sorry, the game has already started.'))
 
 def whoami(user):
 	# Tell the user everything they should know based on what role they are (including score etc.)
@@ -55,20 +57,22 @@ def whoami(user):
 	if user.role == 'nilrem':
 		# Sees all evil players except derdrom
 		notifyEvilPlayers(user, False)
-	elif user.role == 'lavicrep':
-		# Knows who Merlin is, (but Morgana is also shown as Merlin)
-		# use queue of messages to randomize the order
-		queue = []
-		if roles['anagrom'] != None:
-			queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
-		if roles['nilrem'] != None:
-			queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
-
-		random.shuffle(queue)
-		for msg in queue:
-			send(user, msg)
-	elif user.role == 'derdrom' or user.role == 'anagrom' or user in roles['evil']:
+	elif user.role == 'nissassa' or user in roles['evil']:
 		notifyEvilPlayers(user, True)
+	# elif user.role == 'lavicrep':
+	# 	# Knows who Merlin is, (but Morgana is also shown as Merlin)
+	# 	# use queue of messages to randomize the order
+	# 	queue = []
+	# 	if roles['anagrom'] != None:
+	# 		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
+	# 	if roles['nilrem'] != None:
+	# 		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
+
+	# 	random.shuffle(queue)
+	# 	for msg in queue:
+	# 		send(user, msg)
+	# elif user.role == 'derdrom' or user.role == 'anagrom' or user in roles['evil']:
+	# 	notifyEvilPlayers(user, True)
 
 	# Finally, notify the user of all spots that are taken... Useful if the game is still joinable and whatnot
 	for u in [x for x in users if x.place != None]:
@@ -84,16 +88,16 @@ def notifyEvilPlayers(user, includeDerdrom):
 	for u in roles['evil']:
 		queue.append('place:%s:%s:%s' % (u.place, u.name, u.role))
 
-	if includeDerdrom and roles['derdrom'] != None:
-		queue.append('place:%s:%s:%s' % (roles['derdrom'].place, roles['derdrom'].name, 'derdrom'))
+	# if includeDerdrom and roles['derdrom'] != None:
+	# 	queue.append('place:%s:%s:%s' % (roles['derdrom'].place, roles['derdrom'].name, 'derdrom'))
 
-	if roles['anagrom'] != None:
-		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'anagrom'))
+	# if roles['anagrom'] != None:
+	# 	queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'anagrom'))
 
 	if roles['nissassa'] != None:
-		queue.append('place:%s:%s:%s' % (roles['nissassa'].place, roles['nissassa'].name, 'nissassa'))
+		queue.append('place:%s:%s:%s' % (roles['nissassa'].place, roles['nissassa'].name, 'evil'))
 
-	random.shuffle(queue)	
+	random.shuffle(queue)
 	for msg in queue:
 		send(user, msg)
 
@@ -124,6 +128,8 @@ def startGame():
 	# Give all users an assigned place and role and start the first round
 	# all users that have an assigned place
 	global roles
+	global gameState
+	gameState = GameBoard(5)
 	usersPlaying = [x for x in users if x.role == None]
 	random.shuffle(usersPlaying)
 
@@ -138,6 +144,7 @@ def startGame():
 
 		user = usersPlaying.pop(0)
 		user.session = uuid.uuid1()
+		sessions[user.session] = user
 		user.role = role
 		user.place = place
 		send(user, 'assign:%s' % (user.place))
@@ -169,17 +176,22 @@ def startRound():
 		u.teamLeader = False
 		u.teamMember = False
 
-	state = 'choose_team'
-	leaderPlace = leaderPlace + 1
-	#newLeader = next(x for x in users if x.place == leaderPlace)
-	newLeader = min(users, key=lambda x: numOrInf(x.place))
+	leaderPlace = (leaderPlace + 1) % gameState.numPlayers
+
+	newLeader = None
+	for user in users:
+		if user.place == leaderPlace:
+			newLeader = user
 
 	newLeader.teamLeader = True
 	send(newLeader, 'quest:leader')
 
 	for user in users:
 		send(user, 'leader:%s' % (leaderPlace))
+		# Tell everyone how many players to be on team
+		send(user, 'members_needed:%s' % (gameState.playersOnTeam()))
 
+	state = 'choose_team'
 	startTimer()
 
 def gameAction(action):
@@ -203,6 +215,88 @@ def roundTimeIsUp():
 			return True
 	return False
 
+def stateSatisfied():
+	global state
+	# TODO: Did one team win?
+
+	if state == 'choose_team':
+		playersNeeded = gameState.playersOnTeam()
+		currentPlayers = 0
+		teamMembers = [x for x in users if x.teamMember == True]
+		currentPlayers += len(teamMembers)
+
+		if currentPlayers == playersNeeded:
+			# Advance to next game state
+			state = 'vote_quest'
+			for user in users:
+				for u in teamMembers:
+					send(user, 'team_member:%s' % (u.place))
+
+	elif state == 'vote_quest':
+		# TODO did team members all vote to accept/reject team?
+		votesNeeded = gameState.playersOnTeam()
+		votes = 0
+		teamMembers = [x for x in users if x.teamMember == True]
+		for user in teamMembers:
+			if user.voteAffirmative != None:
+				votes += 1
+
+		if votes == votesNeeded:
+			# Tell everyone who voted what
+			fails = 0
+			for user in users:
+				for u in teamMembers:
+					send(user, 'vote:%s:%s' % (u.name, u.voteAffirmative))
+					u.voteAffirmative = None
+					if not u.voteAffirmative:
+						fails += 1
+			if fails / votesNeeded >= .5:
+				# If there have been 5 failures to go on the quest,
+				# then the quest fails
+				if gameState.attemptedTeams >= 5:
+					gameState.questFails += 1
+				startRound()
+			else:
+				state = 'quest_success_or_fail'
+
+	elif state == 'quest_success_or_fail':
+		votesNeeded = gameState.playersOnTeam()
+		votes = 0
+		teamMembers = [x for x in users if x.teamMember == True or x.teamLeader == True]
+		for user in teamMembers:
+			if user.voteAffirmative != None:
+				votes += 1
+
+		if votes == votesNeeded:
+			success = True
+			for user in teamMembers:
+				if user.voteAffirmative == False:
+					success = False
+
+			if success:
+				gameState.questSuccesses += 1
+			else:
+				gameState.questFails += 1
+
+			if gameState.questSuccesses == 3:
+				state = 'assassinate'
+				for user in users:
+					send(user, 'state:assassinate')
+			elif gameState.questFails == 3:
+				state = 'game_over'
+				for user in users:
+					send(user, 'evil_wins:true')
+
+	elif state == 'assassinate':
+		# TODO did assassin choose target?
+		# Just pass here, when assassin chooses target the game state will advance
+		# automatically because there is nothing to wait for
+		pass
+	elif state == 'not_started':
+		# Just pass here, when game admin starts the game the state will advance
+		# automatically because there is nothing to wait for after that
+		return False
+
 def doDefaultTimeOut():
 	# TODO: Do whatever default actions shold be done here, the timer has elapsed
 	if state == 'choose_team':
@@ -215,11 +309,26 @@ def doDefaultTimeOut():
 		# TODO: Have undecided votes default
 		pass
 
+def assassinVote(user, place):
+	if user.role == 'nissassa' and state == 'assassinate':
+		merlinFound = False
+		if roles['nilrem'].place == place:
+			merlinFound = True
+
+		if merlinFound:
+			for u in users:
+				send(u, 'win:evil')
+		else:
+			for u in users:
+				send(u, 'win:good')
+
 try:
 	userId = 1
 	while True:
 		if roundTimeIsUp():
 			doDefaultTimeOut()
+		
+		stateSatisfied()
 
 		client = ws.accept()
 		if client is not None:
@@ -246,7 +355,7 @@ try:
 
 			if action[0] == 'chat':
 				for u in users:
-					send(u, "chat:%s:%s" % (htmlEncode(user.name), htmlEncode(action[1])))
+					send(u, 'chat:%s:%s' % (htmlEncode(user.name), htmlEncode(action[1])))
 			elif action[0] == 'name':
 				# When someone updates their name, tell everyone
 				# Could potentially be abused? TODO: rate limit? only allow once?
@@ -260,6 +369,11 @@ try:
 				pass
 			elif action[0] == 'game':
 				gameAction(action[1])
+			elif action[0] == 'assassinate':
+				assassinVote(user, action[1])
+			elif action[0] == 'quester':
+				# TODO add the person if leader and every other check
+				pass
 			elif action[0] == 'session':
 				# If user is trying to reconnect, make sure they are given the correct user object
 				sessionId = action[1]
@@ -273,7 +387,11 @@ try:
 					print('Untracked user connected with sessionId = %s' % (sessionId))
 			elif action[0] == 'vote':
 				# Should be either reject/approve or success/fail depending on what vote is for
-				pass
+				if user.teamMember:
+					if action[1] == 'yes':
+						user.voteAffirmative = True
+					else:
+						user.voteAffirmative = False 
 			elif action[0] == 'join':
 				joinGame(user)
 			elif action[0] == 'whoami':
