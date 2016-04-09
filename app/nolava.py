@@ -7,7 +7,7 @@ import html
 import re
 from wsocket import WSocket
 from user import User
-from gameState import GameState
+from gameBoard import GameBoard
 
 # empty string here for all available interfaces, same as socket, 0 for timeout
 ws = WSocket('', 1400, 0)
