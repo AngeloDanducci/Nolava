@@ -20,7 +20,7 @@ var places = new Array(5);
 
 $(document).ready(function() {
   $("#name-modal").dialog({autoOpen:false, modal:true,show:"blind",hide:"blind"})
-  
+
   if (!getCookieValue('name')) {
     $('#name-modal').dialog('open');
   }
@@ -227,6 +227,18 @@ function join_game() {
   wsocket.send('join:' + "true");
 }
 
+function send_Vote(yn) {
+  wsocket.send('vote:' + yn);
+  if(yn == "yes"){
+    $('#affirmative').toggleClass("last");
+    $('#negative').removeClass("last");
+  }
+  else{
+      $('#negative').toggleClass("last");
+      $('#affirmative').removeClass("last");
+  }
+}
+
 // Make sure role is the same as the corresponding image file name, minus extension
 function set_place_role(place, role, myRole) {
   if (places[place] == null) {
@@ -288,7 +300,7 @@ function set_place_name(place, user) {
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            
+
           </div>
         </div>
       </div>
@@ -303,7 +315,7 @@ function set_place_name(place, user) {
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            
+
           </div>
         </div>
       </div>
@@ -318,7 +330,7 @@ function set_place_name(place, user) {
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            
+
           </div>
         </div>
       </div>
@@ -334,12 +346,12 @@ function set_place_name(place, user) {
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            
+
           </div>
         </div>
       </div>
     </div>
-    
+
   </div>
   <div id="chat-wrapper">
     <div id="chat">
@@ -355,6 +367,12 @@ function set_place_name(place, user) {
 <br>
 <div style="text-align:center">
     <button type="button" class="j_butt" onclick="join_game()">Join Game</button>
+</div>
+<div style="text-align:center">
+    <button type="button" id="affirmative" class="j_butt" onclick="send_Vote('yes')">Affirmative</button>
+</div>
+<div style="text-align:center">
+    <button type="button" id="negative" class="j_butt" onclick="send_Vote('no')">Negative</button>
 </div>
 
 </body>
