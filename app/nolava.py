@@ -10,7 +10,7 @@ from user import User
 
 # empty string here for all available interfaces, same as socket, 0 for timeout
 ws = WSocket('', 1400, 0)
-allRoles = ['nilrem', 'nissassa', 'derdrom', 'lavicrep', 'anagrom', 'good', 'evil']
+allRoles = ['nilrem', 'nissassa', 'good', 'evil']
 stateList = ['not_started', 'choose_team', 'vote_quest', 'quest_success_or_fail', 'assassinate']
 state = 'not_started'
 timerStart = None # DateTime
@@ -19,7 +19,7 @@ leaderPlace = 0
 users = []
 disconnected = []
 sessions = {}
-roles = {'nilrem':None, 'nissassa':None, 'derdrom':None, 'lavicrep':None, 'anagrom':None, 'good':[], 'evil':[]}
+roles = {'nilrem':None, 'nissassa':None, 'good':[], 'evil':[]}
 
 def htmlEncode(text):
 	return html.escape(text)
@@ -29,24 +29,16 @@ def initUser(user):
 	# WSocket.send(user.socket, "request:name")
 	pass
 
-def playAs(user, place):
-	# Where place is 1-10 on the board
+def joinGame(user):
 	global sessions
-	if user.place != None:
-		# User already has a position
-		send(user, 'error:%s %s' % ('You are already place in position', user.place))
+	# Enfore max number of players
+	usersPlaying = [x for x in users if x.role == None]
+
 	if state == 'not_started':
-		for u in users:
-			if u.place == place:
-				# TODO: Tell them they can't be that place
-				send(user, 'error:%s' % ('Someone already has that position'))
-				return
-		user.place = int(place)
-		user.session = uuid.uuid1()
-		# How serious a session token do we need?... http://stackoverflow.com/a/6092448/1450120
-		send(user, 'assign:%s' % (user.place))
-		send(user, 'session:%s' % (user.session))
-		sessions[user.session] = user
+		if usersPlayer < 5:
+			user.role = None
+		else:
+			send(user, 'error:%s' % ('The game already has the max number of players'))
 	else:
 		send(user, 'error:%s' % ('Sorry, the game has started'))
 
@@ -129,33 +121,30 @@ def send(user, data):
 			return False
 
 def startGame():
-	# Give all users that have an assigned place a role and start the first round
+	# Give all users an assigned place and role and start the first round
 	# all users that have an assigned place
 	global roles
-	usersPlaying = [x for x in users if x.place != None]
+	usersPlaying = [x for x in users if x.role == None]
 	random.shuffle(usersPlaying)
-	# IMPORTANT! Shuffle users otherwise players that connected earlier are much more likely to
-	# be assigned good/evil rather than a unique character
+
 	rolesLeft = list(allRoles)
-	rolesLeft.remove('evil')
-	rolesLeft.remove('good')
+	rolesLeft.append('good')
+
+	place = 1
 
 	while len(usersPlaying) > 0:
-		if len(usersPlaying) > len(rolesLeft):
-			# if there are more players left than unique roles, assign
-			# randomly either a unique role or good/evil
-			if random.getrandbits(1):
-				role = random.choice(rolesLeft)
-				rolesLeft.remove(role)
-			else:
-				role = random.choice(['evil', 'good'])
-		else:
-			role = random.choice(rolesLeft)
-			rolesLeft.remove(role)
+		role = random.choice(rolesLeft)
+		rolesLeft.remove(role)
 
 		user = usersPlaying.pop(0)
+		user.session = uuid.uuid1()
 		user.role = role
-		send(user, 'assign:%s' % (role))
+		user.place = place
+		send(user, 'assign:%s' % (user.place))
+		send(user, 'assign:%s' % (user.role))
+		send(user, 'session:%s' % (user.session))
+
+		place += 1
 		if role == 'evil' or role == 'good':
 			roles[role].append(user)
 		else:
@@ -286,9 +275,7 @@ try:
 				# Should be either reject/approve or success/fail depending on what vote is for
 				pass
 			elif action[0] == 'join':
-				# User will ask to join as id# (1-10) which corresponds to their position in the board
-				# Make sure to check if the id is taken...
-				playAs(user, action[1])
+				joinGame(user)
 			elif action[0] == 'whoami':
 				# If the client reconnects, the browser won't "remember" who is who
 				# so remind them
