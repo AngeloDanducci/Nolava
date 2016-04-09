@@ -78,6 +78,7 @@ wsocket.onmessage = function(event) {
     }
     else if (action[1] == 'leader') {
       // They are leader of current quest
+        setAsLeader();
     }
   }
   else if (action[0] == 'assign') {
@@ -95,6 +96,19 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'state') {
     updateState(action[1]);
   }
+}
+
+function setAsLeader()
+{
+    //I am leader therefore the buttons are now accessible
+    document.getElementbyClassName("quest-button").style.display = "inline";
+}
+
+function addToQuest(playerPlace)
+{
+    var id = "questbutton"+playerPlace;
+    document.getElementById(id).style.display = "none";
+    wsocket.send("quester: " + playerPlace);
 }
 
 function updateState(state) {
@@ -151,6 +165,7 @@ function decrement_timer() {
     clearTimeout(timer);
   }
 }
+
 
 function add_server_message(message, color) {
   var newDiv = document.createElement('div');
@@ -248,11 +263,11 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-              <!--            <button type="button" class="button-join" onclick="join_game(1)">Join Game</button> -->
+            <button type="button" id="questbutton1" class="quest-button" onclick="addToQuest(1)">Add</button>
+              <!-- <button type="button" class="button-join" onclick="join_game(1)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            
           </div>
         </div>
       </div>
@@ -262,6 +277,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
+            <button type="button" id="questbutton2" class="quest-button" onclick="addToQuest(2)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(2)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
@@ -276,6 +292,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
+            <button type="button" id="questbutton3" class="quest-button" onclick="addToQuest(3)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(3)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
@@ -290,6 +307,7 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
+            <button type="button" id="questbutton4" class="quest-button" onclick="addToQuest(4)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>
@@ -304,6 +322,8 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
+            <button type="button" id="questbutton5" class="quest-button" onclick="addToQuest(5)">Add</button>
+              <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
               <!-- <button type="button" class="button-join" onclick="join_game(5)">Join Game</button> -->
             <img src="images/cardback.png">
           </div>

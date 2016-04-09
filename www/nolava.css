@@ -57,10 +57,7 @@ background-color: black;
   float:left;
 }
 
-.player button {
-  width:100px;
-  height:200px;
-}
+
 
 #text{
   position: absolute;
@@ -137,4 +134,11 @@ background-color: black;
     height:50px;
     width:200px;
     text-align:center;
+}
+
+.quest-button {
+    position:absolute;
+    display:none;
+    left:30%;
+    top: 80%;
 }
