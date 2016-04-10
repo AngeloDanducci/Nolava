@@ -250,7 +250,7 @@ def stateSatisfied():
 			for user in users:
 				for u in user:
 					send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
-				if not u.voteAffirmative
+				if not u.voteAffirmative:
 					fails += 1
 
 			if fails / len(players) >= .5:
