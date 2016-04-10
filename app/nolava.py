@@ -176,6 +176,7 @@ def startRound():
 	for u in users:
 		u.teamLeader = False
 		u.teamMember = False
+		u.voteAffirmative = None
 
 	leaderPlace = (leaderPlace + 1) % gameState.numPlayers
 
@@ -240,9 +241,17 @@ def stateSatisfied():
 		votesNeeded = gameState.playersOnTeam()
 		votes = 0
 		teamMembers = [x for x in users if x.teamMember == True]
+		# DEBUG
+		print('votesNeeded' + votesNeeded)
+		# EDN DEBUG
 		for user in teamMembers:
 			if user.voteAffirmative != None:
 				votes += 1
+
+		# DEBUG
+		print('len(teamMembers' + len(teamMembers))
+		print('votes' + votes)
+		# END DEBUG
 
 		if votes == votesNeeded:
 			# Tell everyone who voted what
@@ -250,7 +259,6 @@ def stateSatisfied():
 			for user in users:
 				for u in teamMembers:
 					send(user, 'vote:%s:%s' % (u.name, u.voteAffirmative))
-					u.voteAffirmative = None
 					if not u.voteAffirmative:
 						fails += 1
 			if fails / votesNeeded >= .5:
