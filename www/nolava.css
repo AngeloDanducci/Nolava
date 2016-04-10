@@ -105,8 +105,6 @@ background-color: black;
 
 .front img {
   position:absolute;
-  top:0;
-  z-index:-1;
 }
 
 .front {
@@ -150,3 +148,12 @@ background-color: black;
     left:30%;
     top: 80%;
 }
+
+.quester-image {
+    position:absolute;
+    left:0%;
+    top:20%;
+    z-index:3;
+    display:none;
+}
+
