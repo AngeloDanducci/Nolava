@@ -70,6 +70,7 @@ wsocket.onmessage = function(event) {
     add_server_message(action[1] + ' disconnected.', 'red');
   }
   else if (isFinite(action[0])) {
+    showStart();
     add_server_message(action[1] + ' connected.', 'white');
   }
   else if (action[0] == 'timer') {
@@ -237,6 +238,20 @@ function send_Vote(yn) {
   }
 }
 
+function showStartButton(p) {
+  if(p == 1){
+    $('#start').show(750);
+  }
+}
+
+function startGameYes(y) {
+  if(y == "yes"){
+
+    $('#start').hide(750);
+  }
+  wsocket.send("game:start");
+}
+
 // Make sure role is the same as the corresponding image file name, minus extension
 function set_place_role(place, role) {
   if (myRole == null) {
@@ -332,6 +347,8 @@ function set_place_name(place, user) {
       </div>
     </div>
 
+
+
     <div id="p5" class="player">
       <div class="card">
         <div class="flipper">
@@ -369,6 +386,9 @@ function set_place_name(place, user) {
 </div>
 <div style="text-align:center">
     <button type="button" id="negative" class="j_butt" onclick="send_Vote('no')">Negative</button>
+</div>
+<div style="text-align:center">
+    <button type="button" id="start" class="start_button" onclick="startGameYes('yes')">Start Game</button>
 </div>
 
 </body>
