@@ -76,7 +76,7 @@ wsocket.onmessage = function(event) {
     add_server_message(action[1] + ' disconnected.', 'red');
   }
   else if (isFinite(action[0])) {
-    showStart();
+    howStartButton(action[0]);
     add_server_message(action[1] + ' connected.', 'white');
   }
   else if (action[0] == 'timer') {
