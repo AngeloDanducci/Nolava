@@ -242,15 +242,15 @@ def stateSatisfied():
 		votes = 0
 		teamMembers = [x for x in users if x.teamMember == True]
 		# DEBUG
-		print('votesNeeded' + votesNeeded)
+		print('votesNeeded' + str(votesNeeded))
 		# EDN DEBUG
 		for user in teamMembers:
 			if user.voteAffirmative != None:
 				votes += 1
 
 		# DEBUG
-		print('len(teamMembers' + len(teamMembers))
-		print('votes' + votes)
+		print('len(teamMembers' + str(len(teamMembers)))
+		print('votes' + str(votes))
 		# END DEBUG
 
 		if votes == votesNeeded:
