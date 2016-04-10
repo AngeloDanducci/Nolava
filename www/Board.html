@@ -76,7 +76,7 @@ wsocket.onmessage = function(event) {
     add_server_message(action[1] + ' disconnected.', 'red');
   }
   else if (isFinite(action[0])) {
-    showStart();
+    showStartButton(action[0]);
     add_server_message(action[1] + ' connected.', 'white');
   }
   else if (action[0] == 'timer') {
@@ -326,7 +326,7 @@ function set_place_name(place, user) {
             <img src="images/cardback.png">
           </div>
           <div class="back">
-
+            <button type="button" id="questbutton1" class="quest-button" onclick="addToQuest(1)">Add</button>
             <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
             <img class="quester-image" id="questerimage1" src="images/partymember.png">
           </div>
@@ -347,6 +347,7 @@ function set_place_name(place, user) {
           <div class="back">
             <img class="quester-image" id="questerimage2" src="images/partymember.png">
             <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
+            <button type="button" id="questbutton2" class="quest-button" onclick="addToQuest(2)">Add</button>
 
           </div>
         </div>
@@ -366,6 +367,7 @@ function set_place_name(place, user) {
           <div class="back">
             <img class="quester-image" id="questerimage3" src="images/partymember.png">
             <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
+            <button type="button" id="questbutton3" class="quest-button" onclick="addToQuest(3)">Add</button>
           </div>
         </div>
       </div>
@@ -384,7 +386,7 @@ function set_place_name(place, user) {
           <div class="back">
             <img class="quester-image" id="questerimage4" src="images/partymember.png">
             <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
-
+            <button type="button" id="questbutton4" class="quest-button" onclick="addToQuest(4)">Add</button>
           </div>
         </div>
       </div>
@@ -403,7 +405,7 @@ function set_place_name(place, user) {
           <div class="back">
             <img class="quester-image" id="questerimage5" src="images/partymember.png">
             <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
-
+            <button type="button" id="questbutton5" class="quest-button" onclick="addToQuest(5)">Add</button>
           </div>
         </div>
       </div>
