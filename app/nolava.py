@@ -238,30 +238,22 @@ def stateSatisfied():
 
 	elif state == 'vote_quest':
 		# TODO did team members all vote to accept/reject team?
-		votesNeeded = gameState.playersOnTeam()
 		votes = 0
-		teamMembers = [x for x in users if x.teamMember == True]
-		# DEBUG
-		print('votesNeeded' + str(votesNeeded))
-		# EDN DEBUG
-		for user in teamMembers:
+		players = [x for x in users if x.role != 'spectator']
+		for user in players:
 			if user.voteAffirmative != None:
 				votes += 1
 
-		# DEBUG
-		print('len(teamMembers' + str(len(teamMembers)))
-		print('votes' + str(votes))
-		# END DEBUG
-
-		if votes == votesNeeded:
+		if votes == len(players):
 			# Tell everyone who voted what
-			fails = 0
+			fails
 			for user in users:
-				for u in teamMembers:
-					send(user, 'vote:%s:%s' % (u.name, u.voteAffirmative))
-					if not u.voteAffirmative:
-						fails += 1
-			if fails / votesNeeded >= .5:
+				for u in user:
+					send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
+				if not u.voteAffirmative
+					fails += 1
+
+			if fails / len(players) >= .5:
 				# If there have been 5 failures to go on the quest,
 				# then the quest fails
 				if gameState.attemptedTeams >= 5:
@@ -324,6 +316,9 @@ def doDefaultTimeOut():
 
 		while len(onTeam) < playersNeeded:
 			onTeam.append(notOnTeam.pop)
+
+		for u in onTeam:
+			u.teamMember = True
 		state = 'vote_quest'
 	elif state == 'vote_quest':
 		onTeam = [x for x in users if x.teamMember == True]
