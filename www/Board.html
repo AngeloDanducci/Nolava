@@ -68,6 +68,10 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'success') {
     add_server_message(action[1], 'green');
   }
+  else if (action[0] == 'leader') {
+      //action[1] is position of leader
+
+  }
   else if (action[0] == 'disconnected') {
     add_server_message(action[1] + ' disconnected.', 'red');
   }
@@ -128,6 +132,13 @@ function displayAsQuester(playerPlace)
     var id = "questerimage" + playerPlace;
     //document.getElementById("questerimage"+playerPlace).style.display = "inline";
     $("#"+id).css('display', 'inline');
+}
+
+function displayLeader(leaderPlace)
+{
+    var id = "leaderimage" + leaderPlace;
+    $("#"+id).css('display', 'inline');
+
 }
 
 function updateState(state) {
@@ -311,10 +322,12 @@ function set_place_name(place, user) {
             <button type="button" id="questbutton1" class="quest-button" onclick="addToQuest(1)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(1)">Join Game</button> -->
             <img class="quester-image" id="questerimage1" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
 
+            <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
             <img class="quester-image" id="questerimage1" src="images/partymember.png">
           </div>
         </div>
@@ -328,9 +341,12 @@ function set_place_name(place, user) {
             <button type="button" id="questbutton2" class="quest-button" onclick="addToQuest(2)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(2)">Join Game</button> -->
             <img class="quester-image" id="questerimage2" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+            <img class="quester-image" id="questerimage2" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
 
           </div>
         </div>
@@ -344,10 +360,12 @@ function set_place_name(place, user) {
             <button type="button" id="questbutton3" class="quest-button" onclick="addToQuest(3)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(3)">Join Game</button> -->
             <img class="quester-image" id="questerimage3" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-
+            <img class="quester-image" id="questerimage3" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
           </div>
         </div>
       </div>
@@ -360,16 +378,17 @@ function set_place_name(place, user) {
             <button type="button" id="questbutton4" class="quest-button" onclick="addToQuest(4)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
             <img class="quester-image" id="questerimage4" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+            <img class="quester-image" id="questerimage4" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
 
           </div>
         </div>
       </div>
     </div>
-
-
 
     <div id="p5" class="player">
       <div class="card">
@@ -378,9 +397,12 @@ function set_place_name(place, user) {
             <button type="button" id="questbutton5" class="quest-button" onclick="addToQuest(5)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
             <img class="quester-image" id="questerimage5" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+            <img class="quester-image" id="questerimage5" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
 
           </div>
         </div>

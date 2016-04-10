@@ -151,9 +151,19 @@ background-color: black;
 
 .quester-image {
     position:absolute;
-    left:0%;
-    top:20%;
+    left:40%;
+    top:0%;
     z-index:3;
+    width:75%;
+    display:none;
+}
+
+.leader-image {
+    position:absolute;
+    left:40%;
+    top:50%;
+    z-index:3;
+    width:75%;
     display:none;
 }
 
