@@ -68,10 +68,15 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'success') {
     add_server_message(action[1], 'green');
   }
+  else if (action[0] == 'leader') {
+      //action[1] is position of leader
+
+  }
   else if (action[0] == 'disconnected') {
     add_server_message(action[1] + ' disconnected.', 'red');
   }
   else if (isFinite(action[0])) {
+    showStart();
     add_server_message(action[1] + ' connected.', 'white');
   }
   else if (action[0] == 'timer') {
@@ -80,6 +85,7 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'quest') {
     if (action[1] == 'member') {
       // They are on the current team for quest
+
     }
     else if (action[1] == 'leader') {
       // They are leader of current quest
@@ -101,6 +107,10 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'state') {
     updateState(action[1]);
   }
+  else if (action[0] == 'team_member')
+  {
+      displayAsQuester(action[1]);
+  }
 }
 
 function setAsLeader()
@@ -112,9 +122,23 @@ function setAsLeader()
 
 function addToQuest(playerPlace)
 {
-    var id = "questbutton"+playerPlace;
+    var id = "questbutton" + playerPlace;
     document.getElementById(id).style.display = "none";
-    wsocket.send("quester: " + playerPlace);
+    wsocket.send("quester:" + playerPlace);
+}
+
+function displayAsQuester(playerPlace)
+{
+    var id = "questerimage" + playerPlace;
+    //document.getElementById("questerimage"+playerPlace).style.display = "inline";
+    $("#"+id).css('display', 'inline');
+}
+
+function displayLeader(leaderPlace)
+{
+    var id = "leaderimage" + leaderPlace;
+    $("#"+id).css('display', 'inline');
+
 }
 
 function updateState(state) {
@@ -239,6 +263,20 @@ function send_Vote(yn) {
   }
 }
 
+function showStartButton(p) {
+  if(p == 1){
+    $('#start').show(750);
+  }
+}
+
+function startGameYes(y) {
+  if(y == "yes"){
+
+    $('#start').hide(750);
+  }
+  wsocket.send("game:start");
+}
+
 // Make sure role is the same as the corresponding image file name, minus extension
 function set_place_role(place, role, myRole) {
   if (places[place] == null) {
@@ -283,9 +321,14 @@ function set_place_name(place, user) {
           <div class="front">
             <button type="button" id="questbutton1" class="quest-button" onclick="addToQuest(1)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(1)">Join Game</button> -->
+            <img class="quester-image" id="questerimage1" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+
+            <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage1" src="images/partymember.png">
           </div>
         </div>
       </div>
@@ -297,9 +340,13 @@ function set_place_name(place, user) {
           <div class="front">
             <button type="button" id="questbutton2" class="quest-button" onclick="addToQuest(2)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(2)">Join Game</button> -->
+            <img class="quester-image" id="questerimage2" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+            <img class="quester-image" id="questerimage2" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
 
           </div>
         </div>
@@ -312,10 +359,13 @@ function set_place_name(place, user) {
           <div class="front">
             <button type="button" id="questbutton3" class="quest-button" onclick="addToQuest(3)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(3)">Join Game</button> -->
+            <img class="quester-image" id="questerimage3" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-
+            <img class="quester-image" id="questerimage3" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
           </div>
         </div>
       </div>
@@ -327,9 +377,13 @@ function set_place_name(place, user) {
           <div class="front">
             <button type="button" id="questbutton4" class="quest-button" onclick="addToQuest(4)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
+            <img class="quester-image" id="questerimage4" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+            <img class="quester-image" id="questerimage4" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
 
           </div>
         </div>
@@ -342,10 +396,13 @@ function set_place_name(place, user) {
           <div class="front">
             <button type="button" id="questbutton5" class="quest-button" onclick="addToQuest(5)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
-              <!-- <button type="button" class="button-join" onclick="join_game(5)">Join Game</button> -->
+            <img class="quester-image" id="questerimage5" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
+            <img class="quester-image" id="questerimage5" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
 
           </div>
         </div>
@@ -373,6 +430,9 @@ function set_place_name(place, user) {
 </div>
 <div style="text-align:center">
     <button type="button" id="negative" class="j_butt" onclick="send_Vote('no')">Negative</button>
+</div>
+<div style="text-align:center">
+    <button type="button" id="start" class="start_button" onclick="startGameYes('yes')">Start Game</button>
 </div>
 
 </body>

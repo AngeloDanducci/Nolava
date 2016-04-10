@@ -105,8 +105,6 @@ background-color: black;
 
 .front img {
   position:absolute;
-  top:0;
-  z-index:-1;
 }
 
 .front {
@@ -140,9 +138,32 @@ background-color: black;
     text-align:center;
 }
 
+.start_button {
+  display:none;
+}
+
 .quest-button {
     position:absolute;
     display:none;
     left:30%;
     top: 80%;
 }
+
+.quester-image {
+    position:absolute;
+    left:40%;
+    top:0%;
+    z-index:3;
+    width:75%;
+    display:none;
+}
+
+.leader-image {
+    position:absolute;
+    left:40%;
+    top:50%;
+    z-index:3;
+    width:75%;
+    display:none;
+}
+
