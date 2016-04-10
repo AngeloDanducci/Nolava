@@ -306,6 +306,7 @@ def stateSatisfied():
 
 def doDefaultTimeOut():
 	# TODO: Do whatever default actions shold be done here, the timer has elapsed
+	global state
 	if state == 'choose_team':
 		# TODO: Pick team for leader randomly
 		playersNeeded = gameState.playersOnTeam()
