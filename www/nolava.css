@@ -66,6 +66,10 @@ background-color: black;
   color: white;
 }
 
+.last {
+  background-color: blue;
+}
+
 .player-name {
   position:absolute;
   z-index:1;
@@ -132,6 +136,10 @@ background-color: black;
     height:50px;
     width:200px;
     text-align:center;
+}
+
+.start_button {
+  display:none;
 }
 
 .quest-button {

@@ -38,7 +38,8 @@ def joinGame(user):
 	if state == 'not_started':
 		if len(usersPlaying) < 5:
 			user.role = None
-			send(user, 'success:%s' % ('You have joined the game.'))
+			for u in users:
+				send(u, 'success:%s %s' % (user.name, ' has joined the game.'))
 		else:
 			send(user, 'error:%s' % ('The game already has the max number of players.'))
 	else:
@@ -229,8 +230,10 @@ def stateSatisfied():
 			# Advance to next game state
 			state = 'vote_quest'
 			for user in users:
+				send(user, 'success:%s' % ('Team voting has begun'))
 				for u in teamMembers:
 					send(user, 'team_member:%s' % (u.place))
+			startTimer()
 
 	elif state == 'vote_quest':
 		# TODO did team members all vote to accept/reject team?
@@ -322,6 +325,16 @@ def assassinVote(user, place):
 			for u in users:
 				send(u, 'win:good')
 
+def addToTeam(user, place):
+	playersOnTeam = [x for x in users if x.teamMember == True]
+	maxPlayers = gameState.playersOnTeam()
+
+	if user.teamLeader and len(playersOnTeam) < maxPlayers:
+		for u in users:
+			if u.place == int(place):
+				u.teamMember = True
+				send(u, 'team:member')
+
 try:
 	userId = 1
 	while True:
@@ -372,8 +385,7 @@ try:
 			elif action[0] == 'assassinate':
 				assassinVote(user, action[1])
 			elif action[0] == 'quester':
-				# TODO add the person if leader and every other check
-				pass
+				addToTeam(user, action[1])
 			elif action[0] == 'session':
 				# If user is trying to reconnect, make sure they are given the correct user object
 				sessionId = action[1]
