@@ -257,7 +257,8 @@ def stateSatisfied():
 				# If there have been 5 failures to go on the quest,
 				# then the quest fails
 				if gameState.attemptedTeams >= 5:
-					gameState.questFails += 1
+					gameState.questOutcomes[gameState.questNumber-1] = 'evil'
+					gameState.questNumber += 1
 				startRound()
 			else:
 				state = 'quest_success_or_fail'
@@ -277,18 +278,21 @@ def stateSatisfied():
 					success = False
 
 			if success:
-				gameState.questSuccesses += 1
+				gameState.questOutcomes[gameState.questNumber-1] = 'good'
 			else:
-				gameState.questFails += 1
+				gameState.questOutcomes[gameState.questNumber-1] = 'evil'
+			gameState.questNumber += 1
 
-			if gameState.questSuccesses == 3:
+			if gameState.questOutcomes.count('good') == 3:
 				state = 'assassinate'
 				for user in users:
 					send(user, 'state:assassinate')
-			elif gameState.questFails == 3:
+			elif gameState.questOutcomes.count('evil') == 3:
 				state = 'game_over'
 				for user in users:
 					send(user, 'evil_wins:true')
+			else:
+				startRound()
 
 	elif state == 'assassinate':
 		# TODO did assassin choose target?
@@ -304,13 +308,28 @@ def doDefaultTimeOut():
 	# TODO: Do whatever default actions shold be done here, the timer has elapsed
 	if state == 'choose_team':
 		# TODO: Pick team for leader randomly
-		pass
+		playersNeeded = gameState.playersOnTeam()
+		onTeam = [x for x in users if x.teamMember == True]
+		notOnTeam = [x for x in users if x.role != 'spectator']
+		random.shuffle(notOnTeam)
+
+		while len(onTeam) < playersNeeded:
+			onTeam.append(notOnTeam.pop)
+		state = 'vote_quest'
 	elif state == 'vote_quest':
-		# TODO: Have undecided votes default
-		pass
+		onTeam = [x for x in users if x.teamMember == True]
+		for u in onTeam:
+			if u.role == 'good' or u.role == 'nilrem':
+				u.voteAffirmative = True
+			else:
+				u.voteAffirmative = True
 	elif state == 'quest_success_or_fail':
-		# TODO: Have undecided votes default
-		pass
+		onTeam = [x for x in users if x.teamMember == True]
+		for u in onTeam:
+			if u.role == 'good' or u.role == 'nilrem':
+				u.voteAffirmative = True
+			else:
+				u.voteAffirmative = False
 
 def assassinVote(user, place):
 	if user.role == 'nissassa' and state == 'assassinate':

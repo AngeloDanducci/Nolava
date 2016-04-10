@@ -4,11 +4,8 @@ class GameBoard:
 
 	def __init__(self, numPlayers):
 		self.numPlayers = numPlayers
-		self.questSuccesses = 0
-		self.questFails = 0
+		self.questOutcomes = [None, None, None, None, None]
 		self.attemptedTeams = 1
-		self.accepts = 0
-		self.rejects = 0
 		self.fails = 0
 		self.questNumber = 1
 
