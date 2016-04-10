@@ -154,7 +154,7 @@ background-color: black;
     position:absolute;
     left:40%;
     top:0%;
-    z-index:3;
+    z-index:5;
     width:75%;
     display:none;
 }

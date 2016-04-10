@@ -70,7 +70,7 @@ wsocket.onmessage = function(event) {
   }
   else if (action[0] == 'leader') {
       //action[1] is position of leader
-
+      displayLeader(action[1]);
   }
   else if (action[0] == 'disconnected') {
     add_server_message(action[1] + ' disconnected.', 'red');
