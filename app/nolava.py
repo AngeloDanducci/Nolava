@@ -246,9 +246,8 @@ def stateSatisfied():
 
 		if votes == len(players):
 			# Tell everyone who voted what
-			fails
+			fails = 0
 			for user in users:
-				for u in user:
 					send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
 				if not u.voteAffirmative:
 					fails += 1
@@ -321,8 +320,8 @@ def doDefaultTimeOut():
 			u.teamMember = True
 		state = 'vote_quest'
 	elif state == 'vote_quest':
-		onTeam = [x for x in users if x.teamMember == True]
-		for u in onTeam:
+		voter = [x for x in users if x.role != 'spectator']
+		for u in voter:
 			if u.role == 'good' or u.role == 'nilrem':
 				u.voteAffirmative = True
 			else:
@@ -363,7 +362,7 @@ try:
 	while True:
 		if roundTimeIsUp():
 			doDefaultTimeOut()
-		
+
 		stateSatisfied()
 
 		client = ws.accept()
@@ -426,7 +425,7 @@ try:
 					if action[1] == 'yes':
 						user.voteAffirmative = True
 					else:
-						user.voteAffirmative = False 
+						user.voteAffirmative = False
 			elif action[0] == 'join':
 				joinGame(user)
 			elif action[0] == 'whoami':
