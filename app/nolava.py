@@ -216,9 +216,7 @@ def missionFail(x):
 	for user in users:
 		send(user, 'missionFail:%s', gameState.questNumber)
 
-def roundTimeIsUp():else if (action[0] == 'timer') {
-    start_timer(parseInt(action[1]));
-  }
+def roundTimeIsUp():
 	# Check if the time has elapsed and update data structures
 	global timerStart
 	if timerStart != None:
