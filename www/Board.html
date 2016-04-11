@@ -85,7 +85,6 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'quest') {
     if (action[1] == 'member') {
       // They are on the current team for quest
-
     }
     else if (action[1] == 'leader') {
       // They are leader of current quest
@@ -110,6 +109,14 @@ wsocket.onmessage = function(event) {
   else if (action[0] == 'team_member')
   {
       displayAsQuester(action[1]);
+  }
+  else if(action[0] == 'missionSuccess')
+  {
+      displaySuccess(action[1]);
+  }
+  else if(action[0] == 'missionFail')
+  {
+      displayFail(action[1]);
   }
 }
 
@@ -261,6 +268,42 @@ function send_Vote(yn) {
       $('#negative').toggleClass("last");
       $('#affirmative').removeClass("last");
   }
+}
+
+function displaySuccess(i) {
+    if(i == 1){
+      $('#success1').show(750);
+    }
+    else if(i == 2){
+      $('#success2').show(750);
+    }
+    else if(i == 3){
+      $('#success3').show(750);
+    }
+    else if(i == 4){
+      $('#success4').show(750);
+    }
+    else if(i == 5){
+      $('#success5').show(750);
+    }
+}
+
+function displayFail(i){
+    if(i == 1){
+      $('#fail1').show(750);
+    }
+    else if(i == 2){
+      $('#fail2').show(750);
+    }
+    else if(i == 3){
+      $('#fail3').show(750);
+    }
+    else if(i == 4){
+      $('#fail4').show(750);
+    }
+    else if(i == 5){
+      $('#fail5').show(750);
+    }
 }
 
 function showStartButton(p) {

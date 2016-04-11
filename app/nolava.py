@@ -208,7 +208,17 @@ def startTimer():
 	for user in users:
 		send(user, 'timer:%s' % (timerLength))
 
-def roundTimeIsUp():
+def missionSuccess(x):
+	for user in users:
+		send(user, 'missionSuccess:%s', gameState.questNumber)
+
+def missionFail(x):
+	for user in users:
+		send(user, 'missionFail:%s', gameState.questNumber)
+
+def roundTimeIsUp():else if (action[0] == 'timer') {
+    start_timer(parseInt(action[1]));
+  }
 	# Check if the time has elapsed and update data structures
 	global timerStart
 	if timerStart != None:
@@ -256,6 +266,7 @@ def stateSatisfied():
 				# If there have been 5 failures to go on the quest,
 				# then the quest fails
 				if gameState.attemptedTeams >= 5:
+					missionFail(gameState.questNumber)
 					gameState.questOutcomes[gameState.questNumber-1] = 'evil'
 					gameState.questNumber += 1
 				startRound()
@@ -277,8 +288,12 @@ def stateSatisfied():
 					success = False
 
 			if success:
+				#TO DO display @ quest number
+				missionSuccess(gameState.questNumber)
 				gameState.questOutcomes[gameState.questNumber-1] = 'good'
 			else:
+				#TO DO display @ quest number
+				missionFail(gameState.questNumber)
 				gameState.questOutcomes[gameState.questNumber-1] = 'evil'
 			gameState.questNumber += 1
 
