@@ -260,7 +260,7 @@ def stateSatisfied():
 			# Tell everyone who voted what
 			fails = 0
 			for user in users:
-				send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
+				send(user, 'success:%s voted %s.' % (user.name, user.voteAffirmative))
 				if not u.voteAffirmative:
 					fails += 1
 
