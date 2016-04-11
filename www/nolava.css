@@ -249,7 +249,7 @@ background-color: black;
 }
 
 .attempts{
-  display:none;
+
 }
 
 #attempt1{
@@ -264,6 +264,7 @@ background-color: black;
   left:8%;
   top:55%;
   z-index:3;
+  display:none;
 }
 
 #attempt3{
@@ -271,6 +272,7 @@ background-color: black;
   left:14%;
   top:55%;
   z-index:3;
+  display:none;
 }
 
 #attempt4{
@@ -278,6 +280,7 @@ background-color: black;
   left:19.5%;
   top:55%;
   z-index:3;
+  display:none;
 }
 
 #attempt5{
@@ -285,4 +288,5 @@ background-color: black;
   left:24%;
   top:55%;
   z-index:3;
+  display:none;
 }
