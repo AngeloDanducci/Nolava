@@ -288,6 +288,29 @@ function displaySuccess(i) {
     }
 }
 
+function displayAttempts(i){
+  if(i == 1){
+    $('.attempts').hide();
+    $('#attempt1').show(750);
+  }
+  else if(i == 2){
+    $('.attempts').hide();
+    $('#attempt2').show(750);
+  }
+  else if(i == 3){
+    $('.attempts').hide();
+    $('#attempt3').show(750);
+  }
+  else if(i == 4){
+    $('.attempts').hide();
+    $('#attempt4').show(750);
+  }
+  else if(i >= 5){
+    $('.attempts').hide();
+    $('#attempt5').show(750);
+  }
+}
+
 function displayFail(i){
     if(i == 1){
       $('#fail1').show(750);
@@ -509,6 +532,21 @@ function set_place_name(place, user) {
 </div>
 <div>
   <img class="success" id="success5" src="images/nilremwin.png" alt="Mission Success"/>
+</div>
+<div>
+  <img class="attempts" id="attempt1" src="images/currentvote.png" alt="attempt1"/>
+</div>
+<div>
+  <img class="attempts" id="attempt2" src="images/currentvote.png" alt="attempt2"/>
+</div>
+<div>
+  <img class="attempts" id="attempt3" src="images/currentvote.png" alt="attempt3"/>
+</div>
+<div>
+  <img class="attempts" id="attempt4" src="images/currentvote.png" alt="attempt4"/>
+</div>
+<div>
+  <img class="attempts" id="attempt5" src="images/currentvote.png" alt="attempt5"/>
 </div>
 
 </body>

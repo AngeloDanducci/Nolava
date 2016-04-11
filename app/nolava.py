@@ -216,6 +216,10 @@ def missionFail(x):
 	for user in users:
 		send(user, 'missionFail:%s', gameState.questNumber)
 
+def questNoGo(x):
+	for user in users:
+		send(user, 'questNoGo:%s', gameState.attemptedTeams)
+
 def roundTimeIsUp():
 	# Check if the time has elapsed and update data structures
 	global timerStart
@@ -261,12 +265,19 @@ def stateSatisfied():
 					fails += 1
 
 			if fails / len(players) >= .5:
+				#increement attemptedTeams
+				gameState.attemptedTeams += 1
 				# If there have been 5 failures to go on the quest,
 				# then the quest fails
 				if gameState.attemptedTeams >= 5:
+					questNoGo(gameState.attemptedTeams)
+					#hide party counter 5, show party counter 1
+					gameState.attemptedTeams = 1
 					missionFail(gameState.questNumber)
 					gameState.questOutcomes[gameState.questNumber-1] = 'evil'
 					gameState.questNumber += 1
+				#show correct party counter
+				questNoGo(gameState.attemptedTeams)
 				startRound()
 			else:
 				state = 'quest_success_or_fail'

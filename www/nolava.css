@@ -247,3 +247,42 @@ background-color: black;
   z-index:3;
   display:none;
 }
+
+.attempts{
+  display:none;
+}
+
+#attempt1{
+  position:absolute;
+  left:3%;
+  top:55%;
+  z-index:3;
+}
+
+#attempt2{
+  position:absolute;
+  left:8%;
+  top:55%;
+  z-index:3;
+}
+
+#attempt3{
+  position:absolute;
+  left:14%;
+  top:55%;
+  z-index:3;
+}
+
+#attempt4{
+  position:absolute;
+  left:19.5%;
+  top:55%;
+  z-index:3;
+}
+
+#attempt5{
+  position:absolute;
+  left:24%;
+  top:55%;
+  z-index:3;
+}
