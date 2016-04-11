@@ -314,10 +314,12 @@ def doDefaultTimeOut():
 		random.shuffle(notOnTeam)
 
 		while len(onTeam) < playersNeeded:
-			onTeam.append(notOnTeam.pop)
-
-		for u in onTeam:
-			u.teamMember = True
+			x = notOnTeam.pop
+			x.teamMember
+			onTeam.append(x)
+			# trying to fix an issue with u.TeamMember
+		#for u in onTeam:
+		#	u.teamMember = True
 		state = 'vote_quest'
 	elif state == 'vote_quest':
 		voter = [x for x in users if x.role != 'spectator']
