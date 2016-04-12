@@ -17,6 +17,17 @@ var myPlace = null;
 var myRole = null;
 var places = new Array(5);
 
+jQuery.fn.scrollMinimal = function(smooth) {
+  //http://stackoverflow.com/questions/4217962/scroll-to-an-element-using-jquery/4218054#4218054
+  if (this.length > 0) {
+    var cTop = this.offset().top;
+    var cHeight = this.outerHeight(true);
+    var visibleHeight = $(window).height();
+
+    $('#chat-wrapper').animate({'scrollTop': cTop - visibleHeight + cHeight}, 250, 'swing'); 
+  }
+};
+
 
 $(document).ready(function() {
   $("#name-modal").dialog({autoOpen:false, modal:true,show:"blind",hide:"blind"})
@@ -264,7 +275,12 @@ function add_chat(message) {
   newDiv.appendChild(userSpan);
   newDiv.appendChild(msgSpan);
 
-  document.getElementById('chat').appendChild(newDiv);
+  var elem = document.getElementById('chat');
+  elem.appendChild(newDiv);
+
+  // Automatically scroll
+  $(elem).scrollMinimal(true);
+
 }
 
 function send_name() {
@@ -378,7 +394,9 @@ function set_place_role(place, role, myRole) {
     if (myRole)
       myRole = role;
     places[place] = role;
-    var imgPath = 'images/' + role + '.png';
+    var imgPath = 'images/' + role + '.png';var elem = document.getElementById('data');
+  elem.scrollTop = elem.scrollHeight;
+
     $('#p' + place).find('.back').append('<img src="'+ imgPath +'">');
     $('#p' + place).children('.card').toggleClass('flip');
   }
