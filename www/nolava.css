@@ -3,11 +3,13 @@ background-color: black;
 }
 
 #chat-wrapper {
+  position:absolute;
   min-width:275px;
   height:100%;
   border-left:1px solid white;
   order:3;
-  flex:1 100%;
+  overflow-y:scroll;
+  word-wrap:break-word;
 }
 
 #chat {

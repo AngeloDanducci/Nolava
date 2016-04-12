@@ -321,7 +321,7 @@ def stateSatisfied():
 				print('Evil has won 3 rounds - game over')
 				state = 'game_over'
 				for user in users:
-					send(user, 'evil_wins:true')
+					send(user, 'win:evil')
 			else:
 				startRound()
 
