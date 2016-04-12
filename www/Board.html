@@ -29,10 +29,20 @@ $(document).ready(function() {
   //if (wsocket.readyState != 1)
   //  add_server_message('Couldn\'t connect to server!', 'red');
 
-  $('.card').click(function() {
+  // $('.card').click(function() {
+  //     $(this).toggleClass('flip');
+  //     event.preventDefault();
+  //   });
+
+  $(document).on('click', '.card', function(e) {
+    if ($(e.target).is('button')) {
+      // for some reason "not" doesnt work the same way, so deal with this empty block :)
+    }
+    else {
       $(this).toggleClass('flip');
       event.preventDefault();
-    });
+    }
+  });
 });
 
 document.onkeydown = function(event) {
