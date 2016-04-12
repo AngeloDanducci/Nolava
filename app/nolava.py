@@ -18,18 +18,12 @@ timerStart = None # DateTime
 timerLength = 60 # seconds
 leaderPlace = 0
 users = []
-disconnected = []
 sessions = {}
 roles = {'nilrem':None, 'nissassa':None, 'good':[], 'evil':[]}
 gameState = None
 
 def htmlEncode(text):
 	return html.escape(text)
-
-def initUser(user):
-	# ask user their name
-	# WSocket.send(user.socket, "request:name")
-	pass
 
 def joinGame(user):
 	# Enforce max number of players
@@ -105,25 +99,23 @@ def notifyEvilPlayers(user, includeDerdrom):
 
 def send(user, data):
 	try:
-		WSocket.send(user.socket, data)
-		return True
+		if not user.disconnected and user.socket != None:
+			WSocket.send(user.socket, data)
+			return True
+		else:
+			return False
 	except:
-		# If we couldn't send data to a user, remove them from list of users,
-		# add to disconnected list, and notify everyone else the user disconnected
-		try:
-			users.remove(user)
-			# Save the user if they have a session (which means they are playing)
-			if user.session != None:
-				disconnected.append(user)
-			for u in users:
-				send(u, '%s:%s' % ('disconnected', user.name))
+		# If we couldn't send data to a user, update the user object to show they
+		# are disconnected and notify everyone of the disconnect
+		user.disconnected = True
+		for u in users:
+			send(u, '%s:%s' % ('disconnected', user.name))
 
-			return False
-		except ValueError:
-			# If the user is not users trying to remove it creates a value error.
-			# catching the error is useful here to not spam users about a disconnect
-			# and prevent unintended loops
-			return False
+		return False
+
+def resetVotes():
+	for user in users:
+		user.voteAffirmative = None
 
 def startGame():
 	# Give all users an assigned place and role and start the first round
@@ -174,11 +166,12 @@ def startRound():
 	global state
 
 	for u in users:
+		send(u, 'state:choose_team')
 		u.teamLeader = False
 		u.teamMember = False
 		u.voteAffirmative = None
 
-	leaderPlace = (leaderPlace + 1) % gameState.numPlayers
+	leaderPlace = (leaderPlace % gameState.numPlayers) + 1
 
 	newLeader = None
 	for user in users:
@@ -189,10 +182,12 @@ def startRound():
 	send(newLeader, 'quest:leader')
 
 	for user in users:
+		send(user, 'success:Quest leader chosen.')
 		send(user, 'leader:%s' % (leaderPlace))
 		# Tell everyone how many players to be on team
 		send(user, 'members_needed:%s' % (gameState.playersOnTeam()))
 
+	print('Leader chosen, team choosing starting')
 	state = 'choose_team'
 	startTimer()
 
@@ -210,15 +205,15 @@ def startTimer():
 
 def missionSuccess(x):
 	for user in users:
-		send(user, 'missionSuccess:%s', gameState.questNumber)
+		send(user, 'missionSuccess:%s' % (gameState.questNumber))
 
 def missionFail(x):
 	for user in users:
-		send(user, 'missionFail:%s', gameState.questNumber)
+		send(user, 'missionFail:%s' % (gameState.questNumber))
 
 def questNoGo(x):
 	for user in users:
-		send(user, 'questNoGo:%s', gameState.attemptedTeams)
+		send(user, 'questNoGo:%s' % gameState.attemptedTeams)
 
 def roundTimeIsUp():
 	# Check if the time has elapsed and update data structures
@@ -241,11 +236,12 @@ def stateSatisfied():
 
 		if currentPlayers == playersNeeded:
 			# Advance to next game state
-			state = 'vote_quest'
 			for user in users:
-				send(user, 'success:%s' % ('Team voting has begun'))
+				send(user, 'success:%s' % ('Team Chosen - team voting has begun'))
 				for u in teamMembers:
 					send(user, 'team_member:%s' % (u.place))
+			print('Correct number of players chosen, moving to vote_quest phase')
+			state = 'vote_quest'
 			startTimer()
 
 	elif state == 'vote_quest':
@@ -257,15 +253,18 @@ def stateSatisfied():
 				votes += 1
 
 		if votes == len(players):
+			print('Everyone has voted for the current team members')
 			# Tell everyone who voted what
 			fails = 0
 			for user in users:
-				send(user, 'success:%s voted %s.' % (user.name, user.voteAffirmative))
+				for u in users:
+					send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
 				if not user.voteAffirmative:
 					fails += 1
 
 			if fails / len(players) >= .5:
-				#increement attemptedTeams
+				print('Majority voted negatively for the current team')
+				#increment attemptedTeams
 				gameState.attemptedTeams += 1
 				# If there have been 5 failures to go on the quest,
 				# then the quest fails
@@ -278,14 +277,21 @@ def stateSatisfied():
 					gameState.questNumber += 1
 				#show correct party counter
 				questNoGo(gameState.attemptedTeams)
+				for user in users:
+					send(user, 'success:Current team failed - choosing new leader.')
 				startRound()
 			else:
+				print('Current team passed, going on quest')
+				for user in users:
+					send(user, 'success:Current team passed - going on quest.')
+				resetVotes()
+				startTimer()
 				state = 'quest_success_or_fail'
 
 	elif state == 'quest_success_or_fail':
 		votesNeeded = gameState.playersOnTeam()
 		votes = 0
-		teamMembers = [x for x in users if x.teamMember == True or x.teamLeader == True]
+		teamMembers = [x for x in users if x.teamMember == True]
 		for user in teamMembers:
 			if user.voteAffirmative != None:
 				votes += 1
@@ -307,10 +313,12 @@ def stateSatisfied():
 			gameState.questNumber += 1
 
 			if gameState.questOutcomes.count('good') == 3:
+				print('Good has won 3 rounds - go to assassinate phase')
 				state = 'assassinate'
 				for user in users:
 					send(user, 'state:assassinate')
 			elif gameState.questOutcomes.count('evil') == 3:
+				print('Evil has won 3 rounds - game over')
 				state = 'game_over'
 				for user in users:
 					send(user, 'evil_wins:true')
@@ -330,29 +338,29 @@ def stateSatisfied():
 def doDefaultTimeOut():
 	# TODO: Do whatever default actions shold be done here, the timer has elapsed
 	global state
+	print('Timer elapsed')
 	if state == 'choose_team':
-		# TODO: Pick team for leader randomly
+		print('choose_team time up, choosing team randomly')
 		playersNeeded = gameState.playersOnTeam()
 		onTeam = [x for x in users if x.teamMember == True]
 		notOnTeam = [x for x in users if x.role != 'spectator']
 		random.shuffle(notOnTeam)
 
 		while len(onTeam) < playersNeeded:
-			x = notOnTeam.pop
-			x.teamMember
+			x = notOnTeam.pop(0)
+			x.teamMember = True
 			onTeam.append(x)
-			# trying to fix an issue with u.TeamMember
-		#for u in onTeam:
-		#	u.teamMember = True
-		state = 'vote_quest'
+		
 	elif state == 'vote_quest':
-		voter = [x for x in users if x.role != 'spectator']
+		print('vote_quest time up, voting affirmatively for everyone who hasn\'t voted')
+		voter = [x for x in users if x.role != 'spectator' and x.voteAffirmative == None]
 		for u in voter:
 			if u.role == 'good' or u.role == 'nilrem':
 				u.voteAffirmative = True
 			else:
 				u.voteAffirmative = True
 	elif state == 'quest_success_or_fail':
+		print('quest_success_or_fail time up, voting affirmatively for good team members, else negatively')
 		onTeam = [x for x in users if x.teamMember == True]
 		for u in onTeam:
 			if u.role == 'good' or u.role == 'nilrem':
@@ -396,7 +404,6 @@ try:
 			# figure out who they are and add to list
 			user = User(client, userId)
 			userId = userId + 1
-			initUser(user)
 			users.append(user)
 
 		# For each client, see if they sent anything
@@ -439,15 +446,13 @@ try:
 				sessionId = action[1]
 				if sessionId in sessions:
 					print('Tracked user reconnected.')
-					sessions[sessionId] = user
-					if user in disconnected:
-						disconnected.remove(user)
-						users.append(user)
+					sessions[sessionId].socket = user.socket
+					users.remove(user)
 				else:
 					print('Untracked user connected with sessionId = %s' % (sessionId))
 			elif action[0] == 'vote':
 				# Should be either reject/approve or success/fail depending on what vote is for
-				if user.teamMember:
+				if user.role != 'spectator':
 					if action[1] == 'yes':
 						user.voteAffirmative = True
 					else:

@@ -16,12 +16,15 @@ class GameBoard:
 		elif (self.questNumber == 2):
 			if (self.numPlayers == 5):
 				return 3
-		elif (self.questNumber == 2):
+		elif (self.questNumber == 3):
 			if (self.numPlayers == 5):
 				return 2
-		elif (self.questNumber == 2):
+		elif (self.questNumber == 4):
 			if (self.numPlayers == 5):
 				return 3
-		elif (self.questNumber == 2):
+		elif (self.questNumber == 5):
 			if (self.numPlayers == 5):
 				return 3
+		else:
+			raise ValueError('Combination not account for: questNumber:%s, numPlayers:%s'
+				% (self.questNumber, self.numPlayers))

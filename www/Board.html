@@ -91,11 +91,16 @@ wsocket.onmessage = function(event) {
         setAsLeader();
     }
   }
+  else if (action[0] == 'state') {
+    if (action[1] == 'choose_team')
+      start_new_round();
+  }
   else if (action[0] == 'assign') {
     assigned(action[1]);
   }
   else if (action[0] == 'error') {
     console.log('error:' + action[1]);
+    add_server_message(action[1], 'red');
   }
   else if (action[0] == 'session') {
     document.cookie = 'session=' + action[1];
@@ -127,25 +132,35 @@ function setAsLeader()
     $('.quest-button').css('display', 'inline');
 }
 
+function start_new_round() {
+  $('.quester-image').css('display', 'none');
+  $('.leader-image').css('display', 'none');
+}
+
 function addToQuest(playerPlace)
 {
     var id = "questbutton" + playerPlace;
-    document.getElementById(id).style.display = "none";
+    document.getElementById(id+'f').style.display = "none";
+    document.getElementById(id+'b').style.display = "none";
     wsocket.send("quester:" + playerPlace);
 }
 
 function displayAsQuester(playerPlace)
 {
-    var id = "questerimage" + playerPlace;
-    //document.getElementById("questerimage"+playerPlace).style.display = "inline";
-    $("#"+id).css('display', 'inline');
+  // Team members were just chosen, so hide "add" buttons
+  $('.quest-button').css('display', 'none');
+
+  var id = "questerimage" + playerPlace;
+  //document.getElementById("questerimage"+playerPlace).style.display = "inline";
+  $("#"+id+"f").css('display', 'inline');
+  $("#"+id+"b").css('display', 'inline');
 }
 
 function displayLeader(leaderPlace)
 {
-    var id = "leaderimage" + leaderPlace;
-    $("#"+id).css('display', 'inline');
-
+  var id = "leaderimage" + leaderPlace;
+  $("#"+id+"f").css('display', 'inline');
+  $("#"+id+"b").css('display', 'inline');
 }
 
 function updateState(state) {
@@ -186,8 +201,12 @@ function getCookieValue(key) {
 }
 
 function start_timer(time) {
+  $('#affirmative').removeClass("last");
+  $('#negative').removeClass("last");
+
   timerTime = time;
   $('#timer').show(300).html(timerTime);
+  clearTimeout(timer);
   timer = setInterval(decrement_timer, 1000);
 }
 
@@ -385,16 +404,16 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" id="questbutton1" class="quest-button" onclick="addToQuest(1)">Add</button>
+            <button type="button" id="questbutton1f" class="quest-button" onclick="addToQuest(1)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(1)">Join Game</button> -->
-            <img class="quester-image" id="questerimage1" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage1f" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage1f" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            <button type="button" id="questbutton1" class="quest-button" onclick="addToQuest(1)">Add</button>
-            <img class="leader-image" id="leaderimage1" src="images/partyleader.png">
-            <img class="quester-image" id="questerimage1" src="images/partymember.png">
+            <button type="button" id="questbutton1b" class="quest-button" onclick="addToQuest(1)">Add</button>
+            <img class="leader-image" id="leaderimage1b" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage1b" src="images/partymember.png">
           </div>
         </div>
       </div>
@@ -404,16 +423,16 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" id="questbutton2" class="quest-button" onclick="addToQuest(2)">Add</button>
+            <button type="button" id="questbutton2f" class="quest-button" onclick="addToQuest(2)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(2)">Join Game</button> -->
-            <img class="quester-image" id="questerimage2" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage2f" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage2f" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            <img class="quester-image" id="questerimage2" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage2" src="images/partyleader.png">
-            <button type="button" id="questbutton2" class="quest-button" onclick="addToQuest(2)">Add</button>
+            <img class="quester-image" id="questerimage2b" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage2b" src="images/partyleader.png">
+            <button type="button" id="questbutton2b" class="quest-button" onclick="addToQuest(2)">Add</button>
 
           </div>
         </div>
@@ -424,16 +443,16 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" id="questbutton3" class="quest-button" onclick="addToQuest(3)">Add</button>
+            <button type="button" id="questbutton3f" class="quest-button" onclick="addToQuest(3)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(3)">Join Game</button> -->
-            <img class="quester-image" id="questerimage3" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage3f" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage3f" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            <img class="quester-image" id="questerimage3" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage3" src="images/partyleader.png">
-            <button type="button" id="questbutton3" class="quest-button" onclick="addToQuest(3)">Add</button>
+            <img class="quester-image" id="questerimage3b" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage3b" src="images/partyleader.png">
+            <button type="button" id="questbutton3b" class="quest-button" onclick="addToQuest(3)">Add</button>
           </div>
         </div>
       </div>
@@ -443,16 +462,16 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" id="questbutton4" class="quest-button" onclick="addToQuest(4)">Add</button>
+            <button type="button" id="questbutton4f" class="quest-button" onclick="addToQuest(4)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
-            <img class="quester-image" id="questerimage4" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage4f" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage4f" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            <img class="quester-image" id="questerimage4" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage4" src="images/partyleader.png">
-            <button type="button" id="questbutton4" class="quest-button" onclick="addToQuest(4)">Add</button>
+            <img class="quester-image" id="questerimage4b" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage4b" src="images/partyleader.png">
+            <button type="button" id="questbutton4b" class="quest-button" onclick="addToQuest(4)">Add</button>
           </div>
         </div>
       </div>
@@ -462,16 +481,16 @@ function set_place_name(place, user) {
       <div class="card">
         <div class="flipper">
           <div class="front">
-            <button type="button" id="questbutton5" class="quest-button" onclick="addToQuest(5)">Add</button>
+            <button type="button" id="questbutton5f" class="quest-button" onclick="addToQuest(5)">Add</button>
               <!-- <button type="button" class="button-join" onclick="join_game(4)">Join Game</button> -->
-            <img class="quester-image" id="questerimage5" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
+            <img class="quester-image" id="questerimage5f" src="images/partymember.png">
+            <img class="leader-image" id="leaderimage5f" src="images/partyleader.png">
             <img src="images/cardback.png">
           </div>
           <div class="back">
-            <img class="quester-image" id="questerimage5" src="images/partymember.png">
-            <img class="leader-image" id="leaderimage5" src="images/partyleader.png">
-            <button type="button" id="questbutton5" class="quest-button" onclick="addToQuest(5)">Add</button>
+            <img class="quester-image" id="questerimage5b" src="images/partymember.png">
+            <img class="leader-image" id="leaderimageb" src="images/partyleader.png">
+            <button type="button" id="questbutton5b" class="quest-button" onclick="addToQuest(5)">Add</button>
           </div>
         </div>
       </div>
