@@ -268,7 +268,7 @@ def stateSatisfied():
 				gameState.attemptedTeams += 1
 				# If there have been 5 failures to go on the quest,
 				# then the quest fails
-				if gameState.attemptedTeams >= 5:
+				if gameState.attemptedTeams > 5:
 					questNoGo(gameState.attemptedTeams)
 					#hide party counter 5, show party counter 1
 					gameState.attemptedTeams = 1
@@ -350,7 +350,7 @@ def doDefaultTimeOut():
 			x = notOnTeam.pop(0)
 			x.teamMember = True
 			onTeam.append(x)
-		
+
 	elif state == 'vote_quest':
 		print('vote_quest time up, voting affirmatively for everyone who hasn\'t voted')
 		voter = [x for x in users if x.role != 'spectator' and x.voteAffirmative == None]
