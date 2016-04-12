@@ -249,44 +249,7 @@ background-color: black;
 }
 
 .attempts{
-
-}
-
-#attempt1{
   position:absolute;
-  left:3%;
-  top:55%;
-  z-index:3;
-}
-
-#attempt2{
-  position:absolute;
-  left:8%;
-  top:55%;
-  z-index:3;
-  display:none;
-}
-
-#attempt3{
-  position:absolute;
-  left:14%;
-  top:55%;
-  z-index:3;
-  display:none;
-}
-
-#attempt4{
-  position:absolute;
-  left:19.5%;
-  top:55%;
-  z-index:3;
-  display:none;
-}
-
-#attempt5{
-  position:absolute;
-  left:24%;
-  top:55%;
-  z-index:3;
-  display:none;
+  top:445px;
+  left:55px;
 }

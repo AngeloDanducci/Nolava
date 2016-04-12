@@ -133,6 +133,11 @@ wsocket.onmessage = function(event) {
   {
       displayFail(action[1]);
   }
+  else if(action[0] == 'questNoGo')
+  {
+      displayAttempts(action[1]);
+  }
+
 }
 
 function setAsLeader()
@@ -145,6 +150,7 @@ function setAsLeader()
 function start_new_round() {
   $('.quester-image').css('display', 'none');
   $('.leader-image').css('display', 'none');
+  $('.attempts').css('left',55);
 }
 
 function addToQuest(playerPlace)
@@ -319,24 +325,19 @@ function displaySuccess(i) {
 
 function displayAttempts(i){
   if(i == 1){
-    $('.attempts').hide();
-    $('#attempt1').show(750);
+    $('.attempts').css("left",55);
   }
   else if(i == 2){
-    $('.attempts').hide();
-    $('#attempt2').show(750);
+    $('.attempts').css("left",140);
   }
   else if(i == 3){
-    $('.attempts').hide();
-    $('#attempt3').show(750);
+    $('.attempts').css("left",235);
   }
   else if(i == 4){
-    $('.attempts').hide();
-    $('#attempt4').show(750);
+    $('.attempts').css("left",330);
   }
   else if(i >= 5){
-    $('.attempts').hide();
-    $('#attempt5').show(750);
+    $('.attempts').css("left",410);
   }
 }
 
@@ -565,18 +566,7 @@ function set_place_name(place, user) {
 <div>
   <img class="attempts" id="attempt1" src="images/currentvote.png" alt="attempt1"/>
 </div>
-<div>
-  <img class="attempts" id="attempt2" src="images/currentvote.png" alt="attempt2"/>
-</div>
-<div>
-  <img class="attempts" id="attempt3" src="images/currentvote.png" alt="attempt3"/>
-</div>
-<div>
-  <img class="attempts" id="attempt4" src="images/currentvote.png" alt="attempt4"/>
-</div>
-<div>
-  <img class="attempts" id="attempt5" src="images/currentvote.png" alt="attempt5"/>
-</div>
+
 
 </body>
 </html>
