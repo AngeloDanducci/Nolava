@@ -125,15 +125,15 @@ wsocket.onmessage = function(event) {
   {
       displayAsQuester(action[1]);
   }
-  else if(action[0] == 'missionSuccess')
+  else if(action[0] == 'mission_success')
   {
       displaySuccess(action[1]);
   }
-  else if(action[0] == 'missionFail')
+  else if(action[0] == 'mission_fail')
   {
       displayFail(action[1]);
   }
-  else if(action[0] == 'questNoGo')
+  else if(action[0] == 'quest_no_go')
   {
       displayAttempts(action[1]);
   }

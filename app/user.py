@@ -13,3 +13,9 @@ class User:
 		self.teamLeader = False
 		self.teamMember = False
 		self.voteAffirmative = None
+
+	def isGood(self):
+		if self.role == 'good' or self.role == 'nilrem':
+			return True
+		else:
+			return False

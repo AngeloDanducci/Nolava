@@ -26,5 +26,5 @@ class GameBoard:
 			if (self.numPlayers == 5):
 				return 3
 		else:
-			raise ValueError('Combination not account for: questNumber:%s, numPlayers:%s'
+			raise ValueError('Combination not accounted for: questNumber:%s, numPlayers:%s'
 				% (self.questNumber, self.numPlayers))

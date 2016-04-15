@@ -9,17 +9,22 @@ from wsocket import WSocket
 from user import User
 from gameBoard import GameBoard
 
+# GAME SETTINGS
+timerLength = 60 # seconds
+minPlayers = 5
+maxPlayers = 5
+
 # empty string here for all available interfaces, same as socket, 0 for timeout
 ws = WSocket('', 1400, 0)
 allRoles = ['nilrem', 'nissassa', 'good', 'evil']
 stateList = ['not_started', 'choose_team', 'vote_quest', 'quest_success_or_fail', 'assassinate']
 state = 'not_started'
 timerStart = None # DateTime
-timerLength = 60 # seconds
-leaderPlace = 0
-users = []
-sessions = {}
+leaderPlace = 0 # The place of the current leader
+users = [] # all users, including spectators and disconnected users
+players = [] # where index+1 is the users place on the board
 roles = {'nilrem':None, 'nissassa':None, 'good':[], 'evil':[]}
+sessions = {} # dictionary to select users by session
 gameState = None
 
 def htmlEncode(text):
@@ -30,10 +35,12 @@ def joinGame(user):
 	usersPlaying = [x for x in users if x.role == None]
 
 	if state == 'not_started':
-		if len(usersPlaying) < 5:
-			user.role = None
-			for u in users:
-				send(u, 'success:%s %s' % (user.name, ' has joined the game.'))
+		if len(usersPlaying) < maxPlayers:
+			if user.role != None:
+				user.role = None
+				sendAll(users, 'success:%s %s' % (user.name, ' has joined the game.'))
+			else:
+				send(user, 'success:You are already queued.')
 		else:
 			send(user, 'error:%s' % ('The game already has the max number of players.'))
 	else:
@@ -52,28 +59,29 @@ def whoami(user):
 	if user.role == 'nilrem':
 		# Sees all evil players except derdrom
 		notifyEvilPlayers(user, False)
-	elif user.role == 'nissassa' or user in roles['evil']:
+	elif not user.isGood():
+		# All evil players know who evil players are (but not their role!)
 		notifyEvilPlayers(user, True)
 	# elif user.role == 'lavicrep':
 	# 	# Knows who Merlin is, (but Morgana is also shown as Merlin)
 	# 	# use queue of messages to randomize the order
-	# 	queue = []
-	# 	if roles['anagrom'] != None:
-	# 		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
-	# 	if roles['nilrem'] != None:
-	# 		queue.append('place:%s:%s:%s' % (roles['anagrom'].place, roles['anagrom'].name, 'nilrem'))
 
-	# 	random.shuffle(queue)
-	# 	for msg in queue:
-	# 		send(user, msg)
-	# elif user.role == 'derdrom' or user.role == 'anagrom' or user in roles['evil']:
-	# 	notifyEvilPlayers(user, True)
+	# Give players place & name and show quest leader/members
+	for p in players:
+		send(user, 'place:%s:%s' % (p.place, p.name))
+		if p.teamLeader:
+			send(user, 'leader:%s' % (p.place))
+		if p.teamMember:
+			send(user, 'team_member:%s' % (p.place))
 
-	# Finally, notify the user of all spots that are taken... Useful if the game is still joinable and whatnot
-	for u in [x for x in users if x.place != None]:
-		send(user, 'place:%s:%s' % (u.place, u.name))
+	# Show score
+	for i in range(len(gameState.questOutcomes)):
+		if gameState.questOutcomes[i] == 'good':
+			send(user, 'mission_success:%s' % (i))
+		elif gameState.questOutcomes[i] == 'evil':
+			send(user, 'mission_fail:%s' % (i))
 
-	# TODO also show quest leader and score!
+	send(user, 'quest_no_go:%s' % (gameState.attemptedTeams))
 
 
 def notifyEvilPlayers(user, includeDerdrom):
@@ -96,6 +104,9 @@ def notifyEvilPlayers(user, includeDerdrom):
 	for msg in queue:
 		send(user, msg)
 
+def sendAll(listUsers, data):
+	for user in listUsers:
+		send(user, data)
 
 def send(user, data):
 	try:
@@ -113,21 +124,58 @@ def send(user, data):
 
 		return False
 
+def reconnectUser(user, sessionId):
+	# If user is trying to reconnect, make sure they are given the correct user object
+	if sessionId in sessions:
+		print('Tracked user reconnected.')
+		sessions[sessionId].socket = user.socket
+		sessions[sessionId].disconnected = False
+		users.remove(user)
+	else:
+		print('Untracked user connected with sessionId = %s' % (sessionId))
+
 def resetVotes():
-	for user in users:
+	for user in players:
 		user.voteAffirmative = None
 
-def startGame():
+def startGame(user):
 	# Give all users an assigned place and role and start the first round
 	# all users that have an assigned place
+	global players
 	global roles
 	global gameState
-	gameState = GameBoard(5)
 	usersPlaying = [x for x in users if x.role == None]
+
+	if len(usersPlaying) < minPlayers:
+		send(user, 'error:Not enough players to start game, need at least %s.' % (minPlayers))
+
+	gameState = GameBoard(len(usersPlaying))
 	random.shuffle(usersPlaying)
 
 	rolesLeft = list(allRoles)
-	rolesLeft.append('good')
+
+	# Right here we should figure out how many extra evil/good players to add
+	# or unique roles to remove if there are not enough
+	if len(usersPlaying) == 5:
+		# 2 evil players
+		rolesLeft.append('good')
+		# add regular good player or lavicrep ?
+		# Keeping nissassa with 5 players basically makes a 1in3 chance evil wins anyway
+		#rolesLeft.remove('nissassa')
+		#rolesLeft.remove('derdrom')
+		#rolesLeft.remove('anagrom')
+		#rolesLeft.remove('norebo')
+		# etc.
+	#elif len(usersPlaying) == 6:
+		# 2 evil players
+	#elif len(usersPlaying) == 7:
+		# 3 evil players
+	#elif len(usersPlaying) == 8:
+		# 3 evil players
+	#elif len(usersPlaying) == 9:
+		# 3 evil players
+	#elif len(usersPlaying) == 10:
+		# 4 evil players
 
 	place = 1
 
@@ -137,9 +185,10 @@ def startGame():
 
 		user = usersPlaying.pop(0)
 		user.session = uuid.uuid1()
-		sessions[user.session] = user
 		user.role = role
 		user.place = place
+		sessions[user.session] = user
+		players.append(user)
 		send(user, 'assign:%s' % (user.place))
 		send(user, 'assign:%s' % (user.role))
 		send(user, 'session:%s' % (user.session))
@@ -154,12 +203,6 @@ def startGame():
 	for user in users:
 		whoami(user)
 
-def numOrInf(x):
-	if not x:
-		return 99999999999
-	else:
-		return x
-
 def startRound():
 	# Assign new leader, start timer
 	global leaderPlace
@@ -167,53 +210,37 @@ def startRound():
 
 	for u in users:
 		send(u, 'state:choose_team')
-		u.teamLeader = False
-		u.teamMember = False
-		u.voteAffirmative = None
+
+	for p in players:
+		p.teamLeader = False
+		p.teamMember = False
+		p.voteAffirmative = None
 
 	leaderPlace = (leaderPlace % gameState.numPlayers) + 1
 
-	newLeader = None
-	for user in users:
-		if user.place == leaderPlace:
-			newLeader = user
+	players[leaderPlace-1].teamLeader = True
 
-	newLeader.teamLeader = True
-	send(newLeader, 'quest:leader')
+	players[leaderPlace-1].teamLeader = True
+	send(players[leaderPlace-1], 'quest:leader')
 
 	for user in users:
 		send(user, 'success:Quest leader chosen.')
 		send(user, 'leader:%s' % (leaderPlace))
-		# Tell everyone how many players to be on team
-		send(user, 'members_needed:%s' % (gameState.playersOnTeam()))
 
 	print('Leader chosen, team choosing starting')
 	state = 'choose_team'
 	startTimer()
 
-def gameAction(action):
+def gameAction(user, action):
 	# Does specific things for the game as a whole, such as starting it
 	if action == 'start' and state == 'not_started':
-		startGame()
+		startGame(user)
 	#elif action == 'pause':
 
 def startTimer():
 	global timerStart
 	timerStart = time.time()
-	for user in users:
-		send(user, 'timer:%s' % (timerLength))
-
-def missionSuccess(x):
-	for user in users:
-		send(user, 'missionSuccess:%s' % (gameState.questNumber))
-
-def missionFail(x):
-	for user in users:
-		send(user, 'missionFail:%s' % (gameState.questNumber))
-
-def questNoGo(x):
-	for user in users:
-		send(user, 'questNoGo:%s' % gameState.attemptedTeams)
+	sendAll(users, 'timer:%s' % (timerLength))
 
 def roundTimeIsUp():
 	# Check if the time has elapsed and update data structures
@@ -224,247 +251,242 @@ def roundTimeIsUp():
 			return True
 	return False
 
-def stateSatisfied():
+def isTeamChosen():
 	global state
-	# TODO: Did one team win?
+	playersNeeded = gameState.playersOnTeam()
+	currentPlayers = 0
+	teamMembers = [x for x in users if x.teamMember == True]
+	currentPlayers += len(teamMembers)
 
-	if state == 'choose_team':
-		playersNeeded = gameState.playersOnTeam()
-		currentPlayers = 0
-		teamMembers = [x for x in users if x.teamMember == True]
-		currentPlayers += len(teamMembers)
+	if currentPlayers == playersNeeded:
+		# Advance to next game state
+		for user in users:
+			send(user, 'success:%s' % ('Team Chosen - team voting has begun'))
+			for u in teamMembers:
+				send(user, 'team_member:%s' % (u.place))
+		print('Correct number of players chosen, moving to vote_quest phase')
+		state = 'vote_quest'
+		startTimer()
 
-		if currentPlayers == playersNeeded:
-			# Advance to next game state
-			for user in users:
-				send(user, 'success:%s' % ('Team Chosen - team voting has begun'))
-				for u in teamMembers:
-					send(user, 'team_member:%s' % (u.place))
-			print('Correct number of players chosen, moving to vote_quest phase')
-			state = 'vote_quest'
-			startTimer()
+def didTeamPass():
+	global state
+	votes = 0
+	players = [x for x in users if x.role != 'spectator']
+	for user in players:
+		if user.voteAffirmative != None:
+			votes += 1
 
-	elif state == 'vote_quest':
-		# TODO did team members all vote to accept/reject team?
-		votes = 0
-		players = [x for x in users if x.role != 'spectator']
-		for user in players:
-			if user.voteAffirmative != None:
-				votes += 1
+	if votes == len(players):
+		print('Everyone has voted for the current team members')
+		# Tell everyone who voted what
+		fails = 0
+		for user in users:
+			for u in users:
+				send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
+			if not user.voteAffirmative:
+				fails += 1
 
-		if votes == len(players):
-			print('Everyone has voted for the current team members')
-			# Tell everyone who voted what
-			fails = 0
-			for user in users:
-				for u in users:
-					send(user, 'success:%s voted %s.' % (u.name, u.voteAffirmative))
-				if not user.voteAffirmative:
-					fails += 1
-
-			if fails / len(players) >= .5:
-				print('Majority voted negatively for the current team')
-				#increment attemptedTeams
-				gameState.attemptedTeams += 1
-				# If there have been 5 failures to go on the quest,
-				# then the quest fails
-				if gameState.attemptedTeams > 5:
-					questNoGo(gameState.attemptedTeams)
-					#hide party counter 5, show party counter 1
-					gameState.attemptedTeams = 1
-					missionFail(gameState.questNumber)
-					gameState.questOutcomes[gameState.questNumber-1] = 'evil'
-					gameState.questNumber += 1
-				#show correct party counter
-				questNoGo(gameState.attemptedTeams)
-				for user in users:
-					send(user, 'success:Current team failed - choosing new leader.')
-				startRound()
-			else:
-				print('Current team passed, going on quest')
-				for user in users:
-					send(user, 'success:Current team passed - going on quest.')
-				resetVotes()
-				startTimer()
-				state = 'quest_success_or_fail'
-
-	elif state == 'quest_success_or_fail':
-		votesNeeded = gameState.playersOnTeam()
-		votes = 0
-		teamMembers = [x for x in users if x.teamMember == True]
-		for user in teamMembers:
-			if user.voteAffirmative != None:
-				votes += 1
-
-		if votes == votesNeeded:
-			success = True
-			for user in teamMembers:
-				if user.voteAffirmative == False:
-					success = False
-
-			if success:
-				#TO DO display @ quest number
-				missionSuccess(gameState.questNumber)
-				gameState.questOutcomes[gameState.questNumber-1] = 'good'
-			else:
-				#TO DO display @ quest number
+		if fails / len(players) >= .5:
+			print('Majority voted negatively for the current team')
+			#increment attemptedTeams
+			gameState.attemptedTeams += 1
+			# If there have been 5 failures to go on the quest,
+			# then the quest fails
+			if gameState.attemptedTeams > 5:
+				#hide party counter 5, show party counter 1
+				gameState.attemptedTeams = 1
 				missionFail(gameState.questNumber)
 				gameState.questOutcomes[gameState.questNumber-1] = 'evil'
-			gameState.questNumber += 1
+				gameState.questNumber += 1
+			#show correct party counter
+			sendAll(users, 'quest_no_go:%s' % (gameState.attemptedTeams))
+			for user in users:
+				send(user, 'success:Current team failed - choosing new leader.')
+			startRound()
+		else:
+			print('Current team passed, going on quest')
+			for user in users:
+				send(user, 'success:Current team passed - going on quest.')
+			resetVotes()
+			startTimer()
+			state = 'quest_success_or_fail'
 
-			if gameState.questOutcomes.count('good') == 3:
-				print('Good has won 3 rounds - go to assassinate phase')
-				state = 'assassinate'
-				for user in users:
-					send(user, 'state:assassinate')
-			elif gameState.questOutcomes.count('evil') == 3:
-				print('Evil has won 3 rounds - game over')
-				state = 'game_over'
-				for user in users:
-					send(user, 'win:evil')
-			else:
-				startRound()
+def didQuestPass():
+	global state
+	votesNeeded = gameState.playersOnTeam()
+	votes = 0
+	teamMembers = [x for x in users if x.teamMember == True]
+	for user in teamMembers:
+		if user.voteAffirmative != None:
+			votes += 1
 
+	if votes == votesNeeded:
+		success = True
+		for user in teamMembers:
+			if user.voteAffirmative == False:
+				success = False
+
+		if success:
+			sendAll(users, 'mission_success:%s' % (gameState.questNumber))
+			gameState.questOutcomes[gameState.questNumber-1] = 'good'
+		else:
+			sendAll(users, 'mission_fail:%s' % (gameState.questNumber))
+			gameState.questOutcomes[gameState.questNumber-1] = 'evil'
+		gameState.questNumber += 1
+
+		if gameState.questOutcomes.count('good') == 3:
+			print('Good has won 3 rounds - go to assassinate phase')
+			state = 'assassinate'
+			for user in users:
+				send(user, 'state:assassinate')
+		elif gameState.questOutcomes.count('evil') == 3:
+			print('Evil has won 3 rounds - game over')
+			state = 'game_over'
+			for user in users:
+				send(user, 'win:evil')
+		else:
+			startRound()
+
+def doGameLogic():
+	global state
+
+	if state == 'choose_team':
+		isTeamChosen()
+	elif state == 'vote_quest':
+		didTeamPass()
+	elif state == 'quest_success_or_fail':
+		didQuestPass()
 	elif state == 'assassinate':
-		# TODO did assassin choose target?
 		# Just pass here, when assassin chooses target the game state will advance
 		# automatically because there is nothing to wait for
 		pass
 	elif state == 'not_started':
 		# Just pass here, when game admin starts the game the state will advance
 		# automatically because there is nothing to wait for after that
-		return False
+		pass
 
 def doDefaultTimeOut():
-	# TODO: Do whatever default actions shold be done here, the timer has elapsed
 	global state
 	print('Timer elapsed')
 	if state == 'choose_team':
 		print('choose_team time up, choosing team randomly')
 		playersNeeded = gameState.playersOnTeam()
-		onTeam = [x for x in users if x.teamMember == True]
-		notOnTeam = [x for x in users if x.role != 'spectator']
+		onTeam = [x for x in players if x.teamMember == True]
+		notOnTeam = [x for x in players if x.teamMember == False]
 		random.shuffle(notOnTeam)
 
 		while len(onTeam) < playersNeeded:
 			x = notOnTeam.pop(0)
 			x.teamMember = True
 			onTeam.append(x)
-
 	elif state == 'vote_quest':
 		print('vote_quest time up, voting affirmatively for everyone who hasn\'t voted')
-		voter = [x for x in users if x.role != 'spectator' and x.voteAffirmative == None]
+		voter = [x for x in players if x.voteAffirmative == None]
 		for u in voter:
-			if u.role == 'good' or u.role == 'nilrem':
+			if u.isGood():
 				u.voteAffirmative = True
-			else:
+			else: # Split for now in case we want to randomize the evil players vote
 				u.voteAffirmative = True
 	elif state == 'quest_success_or_fail':
 		print('quest_success_or_fail time up, voting affirmatively for good team members, else negatively')
-		onTeam = [x for x in users if x.teamMember == True]
+		onTeam = [x for x in players if x.teamMember == True]
 		for u in onTeam:
-			if u.role == 'good' or u.role == 'nilrem':
+			if u.isGood():
 				u.voteAffirmative = True
 			else:
 				u.voteAffirmative = False
+	elif state == 'assassinate':
+		# TODO
+		pass
 
 def assassinVote(user, place):
 	if user.role == 'nissassa' and state == 'assassinate':
-		merlinFound = False
-		if roles['nilrem'].place == place:
-			merlinFound = True
-
-		if merlinFound:
-			for u in users:
-				send(u, 'win:evil')
+		if players[place-1].role == 'merlin':
+			sendAll(users, 'win:evil')
 		else:
-			for u in users:
-				send(u, 'win:good')
+			sendAll(users, 'win:good')
 
 def addToTeam(user, place):
-	playersOnTeam = [x for x in users if x.teamMember == True]
+	playersOnTeam = [x for x in players if x.teamMember == True]
 	maxPlayers = gameState.playersOnTeam()
 
 	if user.teamLeader and len(playersOnTeam) < maxPlayers:
-		for u in users:
-			if u.place == int(place):
-				u.teamMember = True
-				send(u, 'team:member')
+		for p in players:
+			if p.place == int(place):
+				p.teamMember = True
+				send(p, 'team:member')
 
-try:
-	userId = 1
-	while True:
-		if roundTimeIsUp():
-			doDefaultTimeOut()
+def playGame():
+	try:
+		userId = 1
+		while True:
+			if roundTimeIsUp():
+				doDefaultTimeOut()
 
-		stateSatisfied()
+			doGameLogic()
 
-		client = ws.accept()
-		if client is not None:
-			# figure out who they are and add to list
-			user = User(client, userId)
-			userId = userId + 1
-			users.append(user)
+			client = ws.accept()
+			if client is not None:
+				# figure out who they are and add to list
+				user = User(client, userId)
+				userId = userId + 1
+				users.append(user)
 
-		# For each client, see if they sent anything
+			# For each client, see if they sent anything
+			for user in users:
+				if user.disconnected:
+					continue
+				recvd = WSocket.recv(user.socket, 4096)
+				if recvd is None:
+					continue
+
+				# If they did send something, send it to every client
+				# THIS IS THE POINT WHERE WE WILL BE INSPECTING USER INPUT
+				# TO SEE IF IT'S A CHAT MESSAGE, AN ATTEMPT AT MAKING A GAME
+				# MOVE/VOTE/WHATEVER. IN THE CASE OF A MESSAGE, IT WILL
+				# BE SENT TO EVERYONE
+
+				# first, get action (should seperate into ['action', 'value'])
+				action = recvd.decode('utf-8').split(':', 1)
+
+				if action[0] == 'chat':
+					sendAll(users, 'chat:%s:%s' % (htmlEncode(user.name), htmlEncode(action[1])))
+				elif action[0] == 'name':
+					# When someone updates their name, tell everyone
+					# Could potentially be abused? TODO: rate limit? only allow once?
+					# Check for duplicate name?
+					regex = r'(\w+).*'
+					match = re.match(regex, action[1])
+					if match:
+						user.name = match.group(1)
+						sendAll(users, '%s:%s' % (user.id, htmlEncode(user.name)))
+					pass
+				elif action[0] == 'game':
+					gameAction(user, action[1])
+				elif action[0] == 'assassinate':
+					assassinVote(user, action[1])
+				elif action[0] == 'quester':
+					addToTeam(user, action[1])
+				elif action[0] == 'session':
+					reconnectUser(user, action[1])
+				elif action[0] == 'vote':
+					# Should be either reject/approve or success/fail depending on what vote is for
+					if user.role != 'spectator':
+						if action[1] == 'yes':
+							user.voteAffirmative = True
+						else:
+							user.voteAffirmative = False
+				elif action[0] == 'join':
+					joinGame(user)
+				elif action[0] == 'whoami':
+					# If the client reconnects, the browser won't "remember" who is who
+					# so remind them
+					whoami(user)
+	except KeyboardInterrupt:
+		print('\nKeyboardInterrupt.\nCleaning up and exiting')
 		for user in users:
-			recvd = WSocket.recv(user.socket, 4096)
-			if recvd is None:
-				continue
+			user.socket.close()
+		ws.close()
 
-			# If they did send something, send it to every client
-			# THIS IS THE POINT WHERE WE WILL BE INSPECTING USER INPUT
-			# TO SEE IF IT'S A CHAT MESSAGE, AN ATTEMPT AT MAKING A GAME
-			# MOVE/VOTE/WHATEVER. IN THE CASE OF A MESSAGE, IT WILL
-			# BE SENT TO EVERYONE
-
-			# first, get action (should seperate into ['action', 'value'])
-			action = recvd.decode('utf-8').split(':', 1)
-
-			if action[0] == 'chat':
-				for u in users:
-					send(u, 'chat:%s:%s' % (htmlEncode(user.name), htmlEncode(action[1])))
-			elif action[0] == 'name':
-				# When someone updates their name, tell everyone
-				# Could potentially be abused? TODO: rate limit? only allow once?
-				# Check for duplicate name?
-				regex = r'(\w+).*'
-				match = re.match(regex, action[1])
-				if match:
-					user.name = match.group(1)
-					for u in users:
-						send(u, '%s:%s' % (user.id, htmlEncode(user.name)))
-				pass
-			elif action[0] == 'game':
-				gameAction(action[1])
-			elif action[0] == 'assassinate':
-				assassinVote(user, action[1])
-			elif action[0] == 'quester':
-				addToTeam(user, action[1])
-			elif action[0] == 'session':
-				# If user is trying to reconnect, make sure they are given the correct user object
-				sessionId = action[1]
-				if sessionId in sessions:
-					print('Tracked user reconnected.')
-					sessions[sessionId].socket = user.socket
-					users.remove(user)
-				else:
-					print('Untracked user connected with sessionId = %s' % (sessionId))
-			elif action[0] == 'vote':
-				# Should be either reject/approve or success/fail depending on what vote is for
-				if user.role != 'spectator':
-					if action[1] == 'yes':
-						user.voteAffirmative = True
-					else:
-						user.voteAffirmative = False
-			elif action[0] == 'join':
-				joinGame(user)
-			elif action[0] == 'whoami':
-				# If the client reconnects, the browser won't "remember" who is who
-				# so remind them
-				whoami(user)
-except KeyboardInterrupt:
-	print('\nKeyboardInterrupt.\nCleaning up and exiting')
-	for user in users:
-		user.socket.close()
-	ws.close()
+if __name__ == '__main__':
+	playGame()
