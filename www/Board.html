@@ -55,6 +55,10 @@ document.onkeydown = function(event) {
     send_msg();
 }
 
+wsocket.onerror = function(event) {
+  add_server_message('Couldn\'t connect to server', 'red');
+}
+
 wsocket.onopen = function(event) {
   if (getCookieValue('name'))
     wsocket.send('name:' + getCookieValue('name'));
@@ -137,7 +141,16 @@ wsocket.onmessage = function(event) {
   {
       displayAttempts(action[1]);
   }
+}
 
+function send(msg) {
+  try {
+    console.log(msg);
+    wsocket.send(msg);
+  }
+  catch (err) {
+    add_server_message('Disconnected from server.', 'red');
+  }
 }
 
 function setAsLeader()
@@ -157,7 +170,7 @@ function addToQuest(playerPlace)
     var id = "questbutton" + playerPlace;
     document.getElementById(id+'f').style.display = "none";
     document.getElementById(id+'b').style.display = "none";
-    wsocket.send("quester:" + playerPlace);
+    send("quester:" + playerPlace);
 }
 
 function displayAsQuester(playerPlace)
@@ -192,6 +205,31 @@ function updatePlayers(assignment) {
   if (fields.length == 3) {
     set_place_role(fields[0], fields[2], false);
   }
+}
+
+function startAssassinate() {
+  if (myRole == 'nissassa') {
+    // TODO this doesn't seem to quite work on chrome, the old onclick still fires once
+    // and is then removed
+    $('.quest-button').html('Kill').unbind();
+
+    // TODO update for variable number of players
+    for (i = 0; i < 5; i++) {
+      $('#questbutton' + i + 'b').click(function() {
+        chooseAssassinateTarget(i);
+      });
+      $('#questbutton' + i + 'f').click(function() {
+        chooseAssassinateTarget(i);
+      });
+    }
+    // Do setAsLeader to show buttons
+    setAsLeader();
+  }
+}
+
+function chooseAssassinateTarget(place) {
+  send('assassinate:'+place);
+  $('.quest-button').hide();
 }
 
 function assigned(role) {
@@ -272,28 +310,24 @@ function send_name() {
   var name = document.getElementById('name-box').value;
   if (name.length > 0) {
     document.cookie = 'name=' + name;
-    wsocket.send('name:' + name);
+    send('name:' + name);
   }
 }
 
 function send_msg() {
   var msg = document.getElementById('chat-input').value;
     if (msg.length > 0) {
-    console.log('Sending: ' + msg);
-    try {
-      wsocket.send('chat:'+msg);
-      document.getElementById('chat-input').value = '';
-    }
-    catch (err) {}
+    send('chat:'+msg);
+    document.getElementById('chat-input').value = '';
   }
 }
 
 function join_game() {
-  wsocket.send('join:' + "true");
+  send('join:' + "true");
 }
 
 function send_Vote(yn) {
-  wsocket.send('vote:' + yn);
+  send('vote:' + yn);
   if(yn == "yes"){
     $('#affirmative').toggleClass("last");
     $('#negative').removeClass("last");
@@ -305,21 +339,7 @@ function send_Vote(yn) {
 }
 
 function displaySuccess(i) {
-    if(i == 1){
-      $('#success1').show(750);
-    }
-    else if(i == 2){
-      $('#success2').show(750);
-    }
-    else if(i == 3){
-      $('#success3').show(750);
-    }
-    else if(i == 4){
-      $('#success4').show(750);
-    }
-    else if(i == 5){
-      $('#success5').show(750);
-    }
+  $('#success' + i).show(750);
 }
 
 function displayAttempts(i){
@@ -341,21 +361,7 @@ function displayAttempts(i){
 }
 
 function displayFail(i){
-    if(i == 1){
-      $('#fail1').show(750);
-    }
-    else if(i == 2){
-      $('#fail2').show(750);
-    }
-    else if(i == 3){
-      $('#fail3').show(750);
-    }
-    else if(i == 4){
-      $('#fail4').show(750);
-    }
-    else if(i == 5){
-      $('#fail5').show(750);
-    }
+  $('#fail' + i).show(750);
 }
 
 function showStartButton(p) {
@@ -369,7 +375,7 @@ function startGameYes(y) {
 
     $('#start').hide(750);
   }
-  wsocket.send("game:start");
+  send("game:start");
 }
 
 // Make sure role is the same as the corresponding image file name, minus extension
